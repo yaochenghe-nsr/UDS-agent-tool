@@ -1,0 +1,1923 @@
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宝可梦英文学习大作战</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+/* ============================================================
+   ROOT & BASE
+   ============================================================ */
+:root{
+  --red:#e3350d; --yellow:#ffcb05; --blue:#3d7dca; --dark:#003a70;
+  --green:#4caf50; --purple:#9c27b0; --pink:#e91e63;
+  --outline:3px solid rgba(0,0,0,.55);
+  --pop-shadow:0 6px 0 rgba(0,0,0,.4);
+  --card-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:18px;}
+body{
+  font-family:'Nunito','Microsoft YaHei',sans-serif;
+  background:linear-gradient(180deg,#87CEEB 0%,#b8deb8 55%,#90EE90 100%);
+  min-height:100vh; color:#fff; overflow-x:hidden;
+}
+
+/* ---- Floating BG Pokémon ---- */
+.bg-layer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.bg-pk{
+  position:absolute; width:90px; opacity:.13;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 0 6px rgba(255,203,5,.6)) brightness(1.3) saturate(1.5);
+  animation:bgFloat var(--dur,7s) var(--delay,0s) ease-in-out infinite;
+}
+@keyframes bgFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-22px) rotate(4deg)}}
+
+/* ---- Stars / Sparkles ---- */
+.stars-layer{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;background:rgba(255,255,255,.8);border-radius:50%;animation:twinkle var(--t,3s) var(--d,0s) ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.9;transform:scale(1.5)}}
+
+/* ---- BG Emoji Floats ---- */
+.bg-pk-emoji{
+  position:absolute;line-height:1;user-select:none;
+  opacity:.22;pointer-events:none;
+  animation:bgFloat var(--dur,7s) var(--delay,0s) ease-in-out infinite;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:22px;position:relative;z-index:1;}
+.screen.active{display:flex;}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.game-header{
+  background:linear-gradient(90deg,#b71c1c,var(--dark));
+  width:100%;padding:10px 16px;
+  border-bottom:4px solid var(--yellow);
+  position:fixed;top:0;z-index:200;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
+}
+.header-row1{display:flex;align-items:center;justify-content:space-between;}
+.game-header h1{font-size:1.1rem;color:var(--yellow);text-shadow:2px 2px 0 #000;flex:1;text-align:center;letter-spacing:1px;}
+.header-row2{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:5px;}
+.hp-label{font-size:.75rem;font-weight:900;color:var(--yellow);}
+.hp-bar{width:140px;height:13px;background:#222;border-radius:8px;overflow:hidden;border:2px solid #444;}
+.hp-fill{height:100%;background:linear-gradient(90deg,var(--green),#8bc34a);border-radius:6px;transition:width .5s;}
+.score-display{font-size:.8rem;color:#fff;font-weight:700;}
+.gallery-btn-header{
+  background:rgba(255,203,5,.2);border:2px solid var(--yellow);
+  color:var(--yellow);padding:4px 11px;border-radius:20px;
+  cursor:pointer;font-size:.78rem;font-weight:900;white-space:nowrap;
+  box-shadow:0 3px 0 rgba(0,0,0,.4);transition:all .15s;
+}
+.gallery-btn-header:hover{background:rgba(255,203,5,.4);transform:translateY(-1px);}
+.gallery-badge{background:var(--red);color:#fff;border-radius:50%;width:17px;height:17px;font-size:.62rem;display:inline-flex;align-items:center;justify-content:center;margin-left:3px;font-weight:900;}
+
+/* ---- Speed ---- */
+.speed-widget{position:fixed;bottom:82px;right:14px;z-index:200;background:rgba(0,0,0,.8);border:2px solid rgba(255,255,255,.25);border-radius:22px;padding:5px 10px;display:flex;align-items:center;gap:5px;box-shadow:var(--card-shadow);}
+.speed-label{font-size:.68rem;color:#aef;}
+.spd-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;padding:3px 8px;border-radius:12px;cursor:pointer;font-size:.7rem;font-weight:700;transition:all .15s;}
+.spd-btn.active{background:var(--yellow);color:var(--dark);border-color:var(--yellow);}
+
+/* ============================================================
+   BUTTONS (cartoon pop style)
+   ============================================================ */
+.btn{
+  padding:14px 34px;font-size:1.1rem;font-weight:900;border:var(--outline);
+  border-radius:50px;cursor:pointer;letter-spacing:1px;
+  box-shadow:var(--pop-shadow);transition:all .15s;text-transform:uppercase;
+  font-family:'Nunito',sans-serif;
+}
+.btn:hover{transform:translateY(-3px);box-shadow:0 9px 0 rgba(0,0,0,.4);}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.4);}
+.btn-start{background:linear-gradient(135deg,#ff5722,var(--red));color:#fff;}
+.btn-next {background:linear-gradient(135deg,#1565c0,var(--blue));color:#fff;}
+.btn-replay{background:linear-gradient(135deg,#6a1b9a,var(--purple));color:#fff;}
+.btn-speak{
+  background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.45);
+  color:#fff;padding:8px 16px;font-size:.85rem;font-weight:700;border-radius:22px;
+  cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif;
+  box-shadow:0 3px 0 rgba(0,0,0,.3);
+}
+.btn-speak:hover{background:rgba(255,255,255,.3);transform:translateY(-2px);}
+
+/* ============================================================
+   TITLE SCREEN
+   ============================================================ */
+#titleScreen{padding-top:0;}
+.pokeball-logo{
+  width:120px;height:120px;border-radius:50%;
+  background:linear-gradient(180deg,var(--red) 50%,#fff 50%);
+  border:5px solid #111;position:relative;margin-bottom:20px;
+  box-shadow:0 8px 0 rgba(0,0,0,.5),0 0 40px rgba(227,53,13,.4);
+  animation:float 3s ease-in-out infinite;
+}
+.pokeball-logo::after{content:'';position:absolute;width:30px;height:30px;background:#fff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);border:5px solid #111;}
+.pokeball-logo::before{content:'';position:absolute;width:100%;height:5px;background:#111;top:50%;transform:translateY(-50%);}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+.title-main{
+  font-size:2.4rem;font-weight:900;color:var(--yellow);
+  text-shadow:3px 3px 0 #000,5px 5px 0 rgba(0,0,0,.3);
+  text-align:center;letter-spacing:2px;
+  -webkit-text-stroke:1px rgba(0,0,0,.4);
+}
+.title-sub{font-size:1.1rem;color:#aef;margin:10px 0 24px;text-align:center;font-weight:700;}
+.unit-badge{background:var(--yellow);color:var(--dark);padding:6px 22px;border-radius:50px;font-weight:900;font-size:.95rem;margin-bottom:24px;border:var(--outline);box-shadow:var(--pop-shadow);}
+
+.level-previews{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:26px;}
+.level-badge{
+  background:rgba(255,255,255,.1);border:3px solid var(--yellow);border-radius:18px;
+  padding:12px 16px;text-align:center;min-width:88px;
+  box-shadow:0 5px 0 rgba(0,0,0,.4);transition:all .2s;
+}
+.level-badge:hover{transform:translateY(-3px);box-shadow:0 8px 0 rgba(0,0,0,.4);}
+.level-badge .lv-icon{font-size:1.8rem;}
+.level-badge .lv-name{font-size:.72rem;color:#aef;margin-top:4px;font-weight:700;}
+.level-badge .lv-count{font-size:.68rem;color:var(--yellow);font-weight:700;}
+
+/* ============================================================
+   LEVEL SCREEN
+   ============================================================ */
+#levelScreen{padding-top:95px;}
+.level-title-banner{
+  background:linear-gradient(135deg,var(--dark),#1565c0);
+  border:3px solid var(--yellow);border-radius:20px;
+  padding:13px 24px;text-align:center;margin-bottom:18px;
+  box-shadow:0 6px 0 rgba(0,0,0,.45),0 0 30px rgba(61,125,202,.3);
+  width:100%;max-width:540px;
+}
+.level-title-banner h2{font-size:1.35rem;color:var(--yellow);text-shadow:2px 2px 0 #000;}
+.level-title-banner p{font-size:.82rem;color:#aef;margin-top:4px;font-weight:700;}
+
+.progress-dots{display:flex;gap:8px;margin:8px 0;justify-content:center;}
+.dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);transition:all .3s;}
+.dot.done{background:var(--yellow);box-shadow:0 0 8px var(--yellow);border-color:var(--yellow);}
+.dot.current{background:var(--blue);animation:blink 1s infinite;border-color:var(--blue);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ============================================================
+   LISTEN & CHOOSE
+   ============================================================ */
+.listen-zone{
+  background:rgba(255,255,255,.07);border:3px solid rgba(255,255,255,.25);
+  border-radius:22px;padding:22px;text-align:center;
+  width:100%;max-width:540px;margin-bottom:16px;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.3);
+}
+.listen-prompt{font-size:.95rem;color:#aef;margin-bottom:12px;font-weight:700;}
+.listen-word{
+  font-size:2rem;font-weight:900;color:var(--yellow);
+  text-shadow:3px 3px 0 #000;margin:10px 0;
+  min-height:52px;display:flex;align-items:center;justify-content:center;
+  letter-spacing:1px;
+}
+.choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;width:100%;max-width:540px;margin-bottom:14px;}
+.choice-btn{
+  background:linear-gradient(135deg,rgba(21,101,192,.6),rgba(0,58,112,.8));
+  border:3px solid #1565c0;color:#fff;padding:14px 10px;
+  font-size:1rem;font-weight:800;border-radius:16px;cursor:pointer;
+  transition:all .18s;line-height:1.4;
+  box-shadow:0 5px 0 rgba(0,0,0,.4);font-family:'Nunito',sans-serif;
+}
+.choice-btn:hover{background:linear-gradient(135deg,var(--blue),#42a5f5);transform:translateY(-2px);box-shadow:0 7px 0 rgba(0,0,0,.4);}
+.choice-btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.4);}
+.choice-btn.correct{background:linear-gradient(135deg,#1b5e20,var(--green))!important;border-color:var(--green);animation:pulse-green .5s;}
+.choice-btn.wrong  {background:linear-gradient(135deg,#7f0000,var(--red))!important;border-color:var(--red);animation:shake .4s;}
+.choice-btn:disabled{cursor:not-allowed;}
+@keyframes pulse-green{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+
+/* ============================================================
+   SPELL GAME
+   ============================================================ */
+.spell-prompt{text-align:center;margin-bottom:15px;width:100%;max-width:540px;}
+.spell-zh{
+  font-size:2.4rem;font-weight:900;color:var(--yellow);
+  text-shadow:3px 3px 0 #000;margin-bottom:10px;
+  -webkit-text-stroke:1px rgba(0,0,0,.3);
+}
+.spell-area{
+  display:flex;flex-wrap:wrap;gap:11px;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);border:3px dashed rgba(255,203,5,.5);
+  border-radius:18px;padding:16px;width:100%;max-width:540px;
+  margin-bottom:10px;min-height:74px;
+}
+.spell-word-group{display:flex;gap:5px;}
+.spell-sep{color:rgba(255,255,255,.3);font-size:1.6rem;margin:0 4px;align-self:center;}
+.spell-box{
+  width:34px;height:40px;background:rgba(255,255,255,.1);
+  border:3px solid rgba(255,255,255,.35);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.15rem;font-weight:900;transition:all .2s;text-transform:lowercase;
+  box-shadow:0 3px 0 rgba(0,0,0,.35);
+}
+.spell-box.filled{border-color:var(--yellow);background:rgba(255,203,5,.2);color:#fff;}
+.spell-hint-row{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:540px;margin-bottom:9px;padding:0 4px;}
+.spell-bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;max-width:540px;margin-bottom:14px;}
+.letter-tile{
+  width:40px;height:44px;
+  background:linear-gradient(135deg,#ad1457,var(--purple));
+  border:3px solid #f48fb1;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.15rem;font-weight:900;cursor:pointer;color:#fff;
+  transition:all .18s;text-transform:lowercase;user-select:none;
+  box-shadow:0 5px 0 rgba(0,0,0,.4);font-family:'Nunito',sans-serif;
+}
+.letter-tile:hover:not(.used){transform:translateY(-4px) scale(1.1);box-shadow:0 9px 0 rgba(0,0,0,.4);}
+.letter-tile:active:not(.used){transform:translateY(2px);box-shadow:0 3px 0 rgba(0,0,0,.4);}
+.letter-tile.used{opacity:.2;cursor:not-allowed;transform:none!important;box-shadow:0 2px 0 rgba(0,0,0,.3);}
+
+/* ============================================================
+   MATCH GAME
+   ============================================================ */
+.match-wrapper{position:relative;width:100%;max-width:540px;}
+.match-container{width:100%;}
+.match-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+.match-row{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+.match-item{
+  flex:1;padding:12px 10px;background:rgba(255,255,255,.1);
+  border:3px solid rgba(255,255,255,.3);border-radius:14px;
+  text-align:center;cursor:pointer;font-size:.92rem;font-weight:800;
+  transition:all .2s;user-select:none;
+  box-shadow:0 4px 0 rgba(0,0,0,.35);
+}
+.match-item:hover:not(.matched){transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.35);}
+.match-item.selected{border-color:var(--yellow);background:rgba(255,203,5,.25);transform:scale(1.05);box-shadow:0 6px 0 rgba(0,0,0,.35);}
+.match-item.matched{border-color:var(--green);background:rgba(76,175,80,.2);cursor:default;opacity:.8;transform:none!important;}
+.match-item.wrong-flash{animation:shake .4s;border-color:var(--red);}
+.match-en{color:#fff;}
+.match-zh{color:var(--yellow);}
+
+/* ============================================================
+   SENTENCE BUILDER
+   ============================================================ */
+.sentence-display{
+  background:rgba(255,255,255,.06);border:3px dashed rgba(255,203,5,.5);
+  border-radius:18px;padding:18px;margin-bottom:15px;
+  width:100%;max-width:540px;min-height:72px;
+  display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:center;
+}
+.word-slot{
+  background:rgba(255,255,255,.13);border:3px solid rgba(255,255,255,.38);
+  border-radius:10px;padding:8px 13px;font-size:.95rem;font-weight:800;
+  min-width:36px;text-align:center;cursor:pointer;transition:all .2s;
+  box-shadow:0 3px 0 rgba(0,0,0,.3);
+}
+.word-slot.filled{border-color:var(--yellow);background:rgba(255,203,5,.2);}
+.word-slot.filled:hover{border-color:var(--red);background:rgba(227,53,13,.2);}
+.word-bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;max-width:540px;margin-bottom:14px;}
+.word-chip{
+  background:linear-gradient(135deg,#4a148c,var(--purple));
+  border:3px solid #ce93d8;color:#fff;padding:8px 15px;
+  border-radius:50px;font-size:.92rem;font-weight:800;cursor:pointer;
+  transition:all .18s;box-shadow:0 4px 0 rgba(0,0,0,.35);
+  font-family:'Nunito',sans-serif;
+}
+.word-chip:hover{transform:translateY(-3px);box-shadow:0 7px 0 rgba(0,0,0,.35);}
+.word-chip:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.35);}
+.word-chip.used{opacity:.22;cursor:not-allowed;transform:none!important;}
+
+/* ============================================================
+   FEEDBACK
+   ============================================================ */
+.feedback-banner{
+  padding:11px 24px;border-radius:50px;font-size:1rem;font-weight:800;
+  text-align:center;margin:8px 0;transition:all .3s;min-height:44px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border:3px solid transparent;
+}
+.feedback-correct{background:rgba(76,175,80,.3);border-color:var(--green);color:#a5d6a7;}
+.feedback-wrong  {background:rgba(227,53,13,.3);border-color:var(--red);color:#ef9a9a;}
+.feedback-neutral{background:transparent;border-color:transparent;}
+
+/* ============================================================
+   LEVEL COMPLETE
+   ============================================================ */
+#levelCompleteScreen{padding-top:95px;}
+.complete-card{
+  background:linear-gradient(145deg,rgba(0,40,90,.95),rgba(21,101,192,.8));
+  border:4px solid var(--yellow);border-radius:28px;
+  padding:28px;text-align:center;max-width:470px;width:100%;
+  box-shadow:0 10px 0 rgba(0,0,0,.5),0 0 40px rgba(255,203,5,.2);
+  overflow-y:auto;max-height:85vh;
+}
+.complete-icon{font-size:3.5rem;margin-bottom:12px;animation:float 2s ease-in-out infinite;}
+.complete-title{font-size:1.8rem;color:var(--yellow);font-weight:900;margin-bottom:8px;text-shadow:2px 2px 0 #000;}
+.complete-msg{color:#aef;font-size:.95rem;margin-bottom:14px;line-height:1.7;font-weight:700;}
+.stars{font-size:2rem;margin:8px 0;letter-spacing:6px;}
+
+/* ============================================================
+   POKEMON REWARD CARD
+   ============================================================ */
+.reward-section{
+  background:rgba(255,203,5,.1);border:3px solid rgba(255,203,5,.45);
+  border-radius:18px;padding:16px;margin:14px 0;
+}
+.reward-title{font-size:.88rem;color:var(--yellow);margin-bottom:10px;font-weight:900;letter-spacing:1px;}
+.reward-card{
+  display:inline-flex;flex-direction:column;align-items:center;
+  background:linear-gradient(145deg,#120240,#270870);
+  border:4px solid var(--yellow);border-radius:20px;
+  padding:16px 26px;position:relative;overflow:hidden;
+  box-shadow:0 6px 0 rgba(0,0,0,.5);
+}
+.reward-card::before{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 30%,rgba(255,203,5,.1) 50%,transparent 70%);animation:shimmer 2s infinite;}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.reward-pk-img{width:100px;height:100px;object-fit:contain;animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 12px rgba(255,203,5,.8));}
+.reward-pk-emoji{font-size:3.8rem;animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 12px rgba(255,203,5,.8));}
+.reward-name{font-size:1rem;color:#fff;font-weight:900;margin-top:7px;text-shadow:1px 1px 0 #000;}
+.reward-rarity{font-size:.68rem;margin-top:3px;letter-spacing:1px;font-weight:700;}
+.reward-new-badge{background:var(--red);color:#fff;font-size:.65rem;padding:3px 8px;border-radius:10px;margin-top:4px;font-weight:900;letter-spacing:1px;border:2px solid rgba(255,255,255,.4);}
+
+/* ============================================================
+   REVIEW STRIP
+   ============================================================ */
+.review-strip{
+  background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.18);
+  border-radius:12px;padding:8px 14px;margin:4px 0;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+}
+.review-en{color:#fff;font-weight:800;font-size:.85rem;}
+.review-zh{color:var(--yellow);font-size:.8rem;font-weight:700;}
+.review-speak{font-size:.95rem;cursor:pointer;}
+
+/* ============================================================
+   FINAL SCREEN
+   ============================================================ */
+#finalScreen{padding-top:95px;}
+.final-card{
+  background:linear-gradient(145deg,#150330,#280a60);
+  border:5px solid var(--yellow);border-radius:28px;
+  padding:34px;text-align:center;max-width:500px;width:100%;
+  box-shadow:0 10px 0 rgba(0,0,0,.6),0 0 60px rgba(255,203,5,.3);
+}
+.pokemon-prize-img{width:160px;height:160px;object-fit:contain;margin:8px 0;animation:float 2.5s ease-in-out infinite;filter:drop-shadow(0 0 25px rgba(255,203,5,.9));}
+.pokemon-prize-emoji{font-size:7rem;margin:8px 0;animation:float 2.5s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(255,203,5,.8));}
+.final-title{font-size:2rem;color:var(--yellow);font-weight:900;margin-bottom:6px;text-shadow:3px 3px 0 #000;}
+.final-subtitle{font-size:1rem;color:#ce93d8;margin-bottom:12px;font-weight:700;}
+.prize-name{font-size:1.4rem;color:#fff;font-weight:900;background:rgba(255,203,5,.18);border:3px solid var(--yellow);border-radius:50px;padding:9px 24px;display:inline-block;margin:8px 0;box-shadow:var(--pop-shadow);}
+.final-stats{display:flex;gap:13px;justify-content:center;margin:14px 0;flex-wrap:wrap;}
+.stat-box{background:rgba(255,255,255,.1);border-radius:14px;padding:10px 18px;text-align:center;border:2px solid rgba(255,255,255,.2);}
+.stat-box .stat-num{font-size:1.8rem;font-weight:900;color:var(--yellow);}
+.stat-box .stat-label{font-size:.72rem;color:#aef;font-weight:700;}
+
+/* ============================================================
+   GALLERY MODAL
+   ============================================================ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.gallery-modal{background:linear-gradient(145deg,#0a1530,#152248);border:4px solid var(--yellow);border-radius:24px;padding:22px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;position:relative;box-shadow:0 10px 0 rgba(0,0,0,.6);}
+.gallery-modal h2{color:var(--yellow);font-size:1.45rem;text-align:center;margin-bottom:5px;text-shadow:2px 2px 0 #000;}
+.gallery-sub{color:#aef;font-size:.82rem;text-align:center;margin-bottom:16px;font-weight:700;}
+.gallery-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);color:#fff;font-size:1.2rem;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;}
+.gallery-close:hover{background:rgba(255,255,255,.3);}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.gallery-slot{border-radius:20px;padding:16px 10px;text-align:center;position:relative;transition:all .2s;}
+.gallery-slot.collected{background:linear-gradient(145deg,#120240,#270870);border:3px solid var(--yellow);box-shadow:0 5px 0 rgba(0,0,0,.5);animation:breatheGlow 2.8s ease-in-out infinite;}
+.gallery-slot.collected:hover{transform:translateY(-4px);box-shadow:0 9px 0 rgba(0,0,0,.5),0 0 30px rgba(255,203,5,.8);animation:none;}
+.gallery-slot.empty{background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.15);}
+/* 剪影：pokedex-view 中未捕获的显示黑色剪影 */
+.pokedex-view .gallery-slot.empty .gs-img{filter:brightness(0);opacity:.55;}
+.pokedex-view .gallery-slot.empty .gs-emoji-fallback{opacity:.15;}
+@keyframes breatheGlow{
+  0%,100%{box-shadow:0 5px 0 rgba(0,0,0,.5),0 0 6px rgba(255,203,5,.15);}
+  50%{box-shadow:0 5px 0 rgba(0,0,0,.5),0 0 24px rgba(255,203,5,.85),0 0 44px rgba(255,203,5,.25);}
+}
+.gs-img{width:105px;height:105px;object-fit:contain;display:block;margin:0 auto;image-rendering:pixelated;filter:drop-shadow(0 3px 10px rgba(255,203,5,.7));}
+.gs-emoji-fallback{font-size:3.6rem;display:block;filter:drop-shadow(0 2px 8px rgba(255,203,5,.6));}
+.gallery-slot.empty .gs-emoji-fallback{opacity:.18;}
+.gs-name{font-size:.76rem;color:#aef;margin-top:6px;line-height:1.3;font-weight:700;}
+.gallery-slot.empty .gs-name{color:rgba(255,255,255,.18);}
+.gs-stars{font-size:.68rem;margin-top:3px;font-weight:700;}
+.gs-owned-badge{background:var(--green);color:#fff;font-size:.58rem;padding:2px 7px;border-radius:8px;margin-top:4px;font-weight:900;display:inline-block;}
+
+/* ============================================================
+   MASCOT
+   ============================================================ */
+.mascot-area{position:fixed;bottom:18px;right:14px;z-index:150;cursor:pointer;}
+.mascot-area img{width:70px;height:70px;object-fit:contain;animation:float 3s ease-in-out infinite;filter:drop-shadow(2px 4px 10px rgba(0,0,0,.5));}
+.mascot-emoji{font-size:54px;display:block;animation:float 3s ease-in-out infinite;filter:drop-shadow(2px 4px 8px rgba(0,0,0,.4));}
+
+.fade-in{animation:fadeIn .5s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============================================================
+   QUESTION TIMER
+   ============================================================ */
+.timer-wrap{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 12px;}
+.timer-svg-wrap{position:relative;width:58px;height:58px;flex-shrink:0;}
+.timer-svg{width:58px;height:58px;}
+.timer-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.1rem;font-weight:900;color:var(--yellow);pointer-events:none;transition:color .3s;}
+.timer-label{font-size:.8rem;color:#aef;font-weight:700;line-height:1.4;}
+.timer-label b{display:block;font-size:1rem;color:#fff;}
+
+/* ============================================================
+   QWERTY KEYBOARD
+   ============================================================ */
+.qwerty-keyboard{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:540px;margin:10px 0 4px;}
+.qwerty-row{display:flex;gap:5px;justify-content:center;}
+.key-btn{
+  min-width:30px;height:42px;padding:0 4px;
+  background:linear-gradient(135deg,#6a1b9a,var(--purple));
+  border:3px solid #ce93d8;border-radius:10px;
+  font-size:.95rem;font-weight:900;cursor:pointer;color:#fff;
+  transition:all .13s;text-transform:uppercase;user-select:none;
+  box-shadow:0 4px 0 rgba(0,0,0,.4);font-family:'Nunito',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+}
+.key-btn:hover:not(:disabled){transform:translateY(-3px) scale(1.08);box-shadow:0 7px 0 rgba(0,0,0,.4);}
+.key-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.4);}
+.key-btn:disabled{opacity:.2;cursor:not-allowed;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);box-shadow:0 2px 0 rgba(0,0,0,.2);transform:none!important;}
+.key-btn.key-used{opacity:.22;cursor:not-allowed;box-shadow:0 2px 0 rgba(0,0,0,.3);transform:none!important;}
+.key-backspace{min-width:72px;height:40px;background:linear-gradient(135deg,#b71c1c,var(--red));border-color:#ef9a9a;font-size:.8rem;gap:4px;}
+
+/* ============================================================
+   POKEBALL CATCH OVERLAY
+   ============================================================ */
+.catch-overlay{
+  display:none;position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,rgba(0,10,40,.97) 0%,rgba(0,0,0,.99) 100%);
+  z-index:2000;align-items:center;justify-content:center;flex-direction:column;
+}
+.catch-overlay.open{display:flex;}
+.catch-wrap{text-align:center;padding:30px 20px;max-width:340px;width:100%;}
+.catch-pk-name{font-size:1.4rem;font-weight:900;color:var(--yellow);text-shadow:2px 2px 0 #000;margin-bottom:14px;min-height:36px;}
+.catch-pk-display{height:150px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.catch-pk-img{width:140px;height:140px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(255,203,5,.9));transition:transform .45s ease,opacity .45s ease;}
+.catch-pk-emoji{font-size:5.5rem;display:block;filter:drop-shadow(0 0 16px rgba(255,203,5,.8));transition:transform .45s ease,opacity .45s ease;}
+.catch-ball-wrap{width:90px;height:90px;margin:8px auto;position:relative;}
+.catch-ball{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(180deg,var(--red) 50%,#fff 50%);
+  border:6px solid #111;position:relative;
+  box-shadow:0 8px 0 rgba(0,0,0,.5);
+}
+.catch-ball::before{content:'';position:absolute;width:100%;height:6px;background:#111;top:50%;transform:translateY(-50%);}
+.catch-ball::after{content:'';position:absolute;width:26px;height:26px;background:#fff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);border:5px solid #111;z-index:1;}
+.catch-result{font-size:1.55rem;font-weight:900;margin-top:20px;min-height:40px;text-shadow:2px 2px 0 #000;}
+.catch-accuracy-bar{margin:10px auto;max-width:220px;}
+.catch-accuracy-label{font-size:.78rem;color:#aef;margin-bottom:5px;font-weight:700;}
+.catch-accuracy-track{height:10px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden;}
+.catch-accuracy-fill{height:100%;border-radius:6px;transition:width 1s ease;}
+@keyframes ballFlyIn{from{transform:translateY(160px) scale(.25);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes pkSuckIn{0%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(.04) translateY(55px);opacity:0}}
+@keyframes ballWobble{0%,100%{transform:rotate(0)}20%{transform:rotate(-28deg)}40%{transform:rotate(28deg)}60%{transform:rotate(-16deg)}80%{transform:rotate(16deg)}}
+@keyframes ballGlow{0%,100%{box-shadow:0 8px 0 rgba(0,0,0,.5)}50%{box-shadow:0 0 50px rgba(255,203,5,1),0 8px 0 rgba(0,0,0,.5)}}
+@keyframes pkEscape{0%{transform:scale(.04) translateY(55px);opacity:0}60%{transform:scale(1.25) translateY(-25px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+@keyframes ballBreak{to{transform:scale(1.6) rotate(40deg);opacity:0}}
+
+/* ============================================================
+   USER SELECT SCREEN
+   ============================================================ */
+#userScreen{padding-top:0;gap:16px;}
+.user-screen-title{font-size:2rem;font-weight:900;color:var(--yellow);text-shadow:3px 3px 0 #000;text-align:center;margin-bottom:4px;}
+.user-screen-sub{font-size:.95rem;color:#aef;font-weight:700;margin-bottom:16px;text-align:center;}
+.user-grid{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:16px;}
+.user-card{
+  background:linear-gradient(145deg,rgba(0,40,100,.85),rgba(21,101,192,.7));
+  border:4px solid var(--user-color,var(--yellow));
+  border-radius:28px;padding:22px 28px;text-align:center;cursor:pointer;
+  min-width:148px;box-shadow:0 7px 0 rgba(0,0,0,.5);transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.user-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.07) 50%,transparent 60%);animation:shimmer 2.5s infinite;}
+.user-card:hover{transform:translateY(-7px);box-shadow:0 14px 0 rgba(0,0,0,.5);}
+.user-card:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(0,0,0,.5);}
+.user-avatar{font-size:3.8rem;margin-bottom:8px;display:block;}
+.user-name{font-size:1.35rem;font-weight:900;color:var(--yellow);text-shadow:2px 2px 0 #000;}
+.user-pk-count{font-size:.75rem;color:#aef;margin-top:6px;font-weight:700;}
+.user-pk-preview{font-size:1.5rem;margin-top:7px;letter-spacing:3px;}
+.user-other-zone{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:4px;}
+.user-other-label{font-size:.85rem;color:rgba(255,255,255,.55);font-weight:700;}
+.user-other-row{display:flex;gap:10px;align-items:center;}
+.user-name-input{
+  padding:11px 20px;font-size:1rem;border-radius:50px;
+  border:3px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);
+  color:#fff;text-align:center;font-family:'Nunito',sans-serif;
+  font-weight:700;outline:none;width:190px;transition:border-color .2s;
+}
+.user-name-input:focus{border-color:var(--yellow);}
+.user-name-input::placeholder{color:rgba(255,255,255,.4);}
+
+/* ---- Lesson Selector ---- */
+.lesson-selector-btn{
+  position:absolute;top:14px;right:14px;z-index:10;
+  background:rgba(0,0,0,.45);border:2px solid rgba(255,203,5,.5);
+  color:var(--yellow);padding:7px 13px;border-radius:20px;
+  cursor:pointer;font-size:.78rem;font-weight:900;font-family:'Nunito',sans-serif;
+  display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;
+  box-shadow:0 3px 0 rgba(0,0,0,.4);
+}
+.lesson-selector-btn:hover{background:rgba(255,203,5,.2);border-color:var(--yellow);}
+.lesson-selector-btn .ls-arrow{transition:transform .2s;display:inline-block;}
+.lesson-selector-btn.open .ls-arrow{transform:rotate(180deg);}
+.lesson-dropdown{
+  width:280px;max-height:0;overflow:hidden;
+  transition:max-height .3s ease;
+}
+.lesson-dropdown.open{max-height:500px;}
+.lesson-dropdown-inner{
+  background:linear-gradient(145deg,#0d1b4b,#1a237e);
+  border:2px solid rgba(255,203,5,.4);border-radius:16px;
+  padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.6);
+}
+.lesson-list{display:flex;flex-direction:column;gap:6px;}
+.lesson-card{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.12);
+  border-radius:11px;padding:8px 10px;cursor:pointer;transition:all .15s;
+}
+.lesson-card:hover{border-color:var(--yellow);background:rgba(255,203,5,.08);}
+.lesson-card.active{border-color:var(--yellow);background:rgba(255,203,5,.15);}
+.lesson-card-icon{font-size:1.3rem;flex-shrink:0;}
+.lesson-card-info{flex:1;min-width:0;}
+.lesson-card-name{font-size:.8rem;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lesson-card-meta{font-size:.67rem;color:#aef;margin-top:1px;}
+.lesson-card-del{background:none;border:none;color:rgba(255,100,100,.5);font-size:.9rem;cursor:pointer;padding:3px;flex-shrink:0;transition:color .15s;}
+.lesson-card-del:hover{color:#ef5350;}
+.lesson-active-badge{background:var(--yellow);color:var(--dark);font-size:.6rem;font-weight:900;padding:1px 6px;border-radius:20px;margin-left:5px;}
+
+/* ---- Photo Upload Button ---- */
+.upload-photo-zone{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:10px;}
+.btn-upload-photo{
+  background:linear-gradient(135deg,#1a237e,#283593);
+  border:3px solid #7986cb;color:#fff;
+  padding:12px 28px;border-radius:50px;cursor:pointer;
+  font-size:.95rem;font-weight:900;font-family:'Nunito',sans-serif;
+  box-shadow:0 5px 0 rgba(0,0,0,.4);transition:all .15s;
+  display:flex;align-items:center;gap:8px;
+}
+.btn-upload-photo:hover{transform:translateY(-3px);box-shadow:0 8px 0 rgba(0,0,0,.4);border-color:#9fa8da;}
+.btn-upload-photo:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.4);}
+.upload-hint{font-size:.75rem;color:rgba(255,255,255,.45);font-weight:700;}
+
+/* ---- AI Loading / Result Modal ---- */
+.ai-modal-overlay{
+  display:none;position:fixed;inset:0;z-index:900;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+}
+.ai-modal-overlay.open{display:flex;}
+.ai-modal{
+  background:linear-gradient(145deg,#0d1b4b,#1565c0);
+  border:4px solid var(--yellow);border-radius:28px;
+  padding:32px 28px;max-width:480px;width:90%;
+  box-shadow:0 12px 40px rgba(0,0,0,.7);text-align:center;
+  position:relative;
+}
+.ai-modal-title{font-size:1.3rem;font-weight:900;color:var(--yellow);text-shadow:2px 2px 0 #000;margin-bottom:12px;}
+.ai-modal-body{font-size:.92rem;color:#aef;font-weight:700;margin-bottom:20px;line-height:1.6;}
+.ai-spinner{font-size:2.5rem;animation:spin 1s linear infinite;display:block;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-word-preview{
+  background:rgba(0,0,0,.3);border-radius:14px;padding:14px;
+  text-align:left;max-height:220px;overflow-y:auto;margin-bottom:18px;
+  border:2px solid rgba(255,203,5,.25);
+}
+.ai-word-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:.82rem;}
+.ai-word-en{color:#fff;font-weight:800;}
+.ai-word-zh{color:var(--yellow);font-weight:700;}
+.ai-modal-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.ai-modal-close{
+  position:absolute;top:12px;right:16px;background:none;border:none;
+  color:rgba(255,255,255,.5);font-size:1.4rem;cursor:pointer;line-height:1;
+}
+.ai-modal-close:hover{color:#fff;}
+.ai-error{color:#ef9a9a;font-size:.88rem;font-weight:700;margin-top:8px;}
+
+/* ============================================================
+   LEADERBOARD
+   ============================================================ */
+.leaderboard{
+  background:rgba(0,0,0,.35);border:3px solid var(--yellow);
+  border-radius:20px;padding:14px 18px;margin-bottom:18px;
+  width:100%;max-width:420px;box-shadow:0 5px 0 rgba(0,0,0,.4);
+}
+.lb-title{font-size:.95rem;color:var(--yellow);font-weight:900;margin-bottom:10px;text-align:center;letter-spacing:1px;}
+.lb-row{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 6px;border-radius:10px;transition:background .2s;
+}
+.lb-row:not(:last-child){border-bottom:1px solid rgba(255,255,255,.1);}
+.lb-row.lb-current{background:rgba(255,203,5,.15);border:1px solid rgba(255,203,5,.35);}
+.lb-rank{font-size:1.15rem;width:30px;text-align:center;}
+.lb-emoji{font-size:1.1rem;}
+.lb-name{flex:1;color:#fff;font-size:.88rem;font-weight:800;}
+.lb-count{color:var(--yellow);font-size:.8rem;font-weight:700;white-space:nowrap;}
+.lb-bar{height:5px;border-radius:3px;background:rgba(255,203,5,.3);margin-top:2px;}
+.lb-bar-fill{height:100%;border-radius:3px;background:var(--yellow);transition:width .6s ease;}
+</style>
+</head>
+<body>
+
+<!-- ===================== LESSON DATA ===================== -->
+<script>
+const LESSON_DATA = {
+  unit:"PU1 Unit 6", title:"宝可梦英文学习大作战", subtitle:"Pokémon Health Battle!",
+  level1_words:{
+    "stretch your arms":"伸展双臂","stretch your legs":"伸展双腿",
+    "run":"跑","jump":"跳","exercise":"锻炼"
+  },
+  level2_words:{
+    "vitamin":"维他命","sun cream":"防晒霜",
+    "important":"重要的","remember":"记住","children":"孩子"
+  },
+  level3_sentences:[
+    "Children need to exercise every day.",
+    "Vitamin D is important to your bones.",
+    "Drink more water when you do exercise.",
+    "Look after your body!"
+  ],
+  final_prize:"谜拟丘 (Mimikyu)", final_prize_id:778,
+  levels:[
+    {id:1, name:"Level 1",  subtitle:"基础词汇 Basic Words",        icon:"⚡", mode:"listen_choose", dataKey:"level1_words"},
+    {id:2, name:"Level 1+", subtitle:"拼写挑战 Spell the Words",    icon:"✏️", mode:"spell",          dataKey:"level1_words"},
+    {id:3, name:"Level 2",  subtitle:"进阶词汇 Advanced Words",     icon:"🔥", mode:"match",          dataKey:"level2_words"},
+    {id:4, name:"Level 3",  subtitle:"挑战句型 Challenge Sentences",icon:"💎", mode:"build_sentence", dataKey:"sentences"}
+  ],
+  messages:{
+    correct:["太棒了！Great job! ⭐","完美！Perfect! 🎯","太厉害了！Awesome! 🏆","对了！Correct! ✅"],
+    wrong  :["再试一次！Try again! 💪","加油！Keep going! 🌟","别放弃！Don't give up! 🔥"],
+    level_clear:["🎉 关卡通关！Level Clear!","⭐ 你赢得了宝可梦徽章！"],
+    final_clear:"🏆 恭喜！你收服了所有单词！"
+  }
+};
+
+// ── 课程管理 ──────────────────────────────────────────────────────────────────
+const ORIGINAL_LESSON = JSON.parse(JSON.stringify(LESSON_DATA)); // 深拷贝原始课程
+
+function getAiLessons(){
+  try{ return JSON.parse(localStorage.getItem('pk_ai_lessons')||'[]'); }catch(e){ return []; }
+}
+function saveAiLesson(lesson){
+  const list = getAiLessons();
+  lesson._savedAt = new Date().toLocaleDateString('zh-CN');
+  list.unshift(lesson); // 最新的放最前
+  localStorage.setItem('pk_ai_lessons', JSON.stringify(list));
+}
+function deleteAiLesson(index){
+  const list = getAiLessons();
+  list.splice(index, 1);
+  localStorage.setItem('pk_ai_lessons', JSON.stringify(list));
+}
+function setActiveLesson(lesson){
+  LESSON_DATA.unit     = lesson.unit     || ORIGINAL_LESSON.unit;
+  LESSON_DATA.title    = lesson.title    || ORIGINAL_LESSON.title;
+  LESSON_DATA.subtitle = lesson.subtitle || ORIGINAL_LESSON.subtitle;
+  LESSON_DATA.level1_words     = lesson.level1_words     || {};
+  LESSON_DATA.level2_words     = lesson.level2_words     || {};
+  LESSON_DATA.level3_sentences = lesson.level3_sentences || [];
+}
+function resetToOriginalLesson(){
+  setActiveLesson(ORIGINAL_LESSON);
+}
+
+// ================================================================
+//  ★ 宝可梦共享图鉴池（与「明耀之星」游戏共用）★
+//  提取到 pokemon_data.js 后两份游戏均可 <script src> 引入
+// ================================================================
+// ── 宝可梦图鉴数据（第一世代经典 64 只）────────────────────────────────────
+const POKEMON_POOL = (()=>{
+  // [id, 中文名, English, emoji, 稀有度(1=普通 2=稀有 3=传说)]
+  const D=[
+    [1, '妙蛙种子','Bulbasaur', '🌿',1],[2, '妙蛙草',  'Ivysaur',   '🌿',2],[3, '妙蛙花',  'Venusaur',  '🌺',2],
+    [4, '小火龙',  'Charmander','🔥',1],[5, '火恐龙',  'Charmeleon','🔥',2],[6, '喷火龙',  'Charizard', '🐲',2],
+    [7, '杰尼龟',  'Squirtle',  '💧',1],[8, '卡咪龟',  'Wartortle', '💧',2],[9, '水箭龟',  'Blastoise', '🌊',2],
+    [10,'绿毛虫',  'Caterpie',  '🐛',1],[11,'铁甲蛹',  'Metapod',   '🫘',1],[12,'巴大蝶',  'Butterfree','🦋',2],
+    [13,'独角虫',  'Weedle',    '🐝',1],[14,'铁壳蛹',  'Kakuna',    '🪲',1],[15,'大针蜂',  'Beedrill',  '🐝',2],
+    [16,'波波',    'Pidgey',    '🐦',1],[17,'比比鸟',  'Pidgeotto', '🦅',1],[18,'大比鸟',  'Pidgeot',   '🦅',2],
+    [19,'小拉达',  'Rattata',   '🐭',1],[20,'拉达',    'Raticate',  '🐀',1],
+    [21,'烈雀',    'Spearow',   '🐦',1],[22,'大嘴雀',  'Fearow',    '🦅',2],
+    [23,'阿柏蛇',  'Ekans',     '🐍',1],[24,'阿柏怪',  'Arbok',     '🐍',2],
+    [25,'皮卡丘',  'Pikachu',   '⚡',2],[26,'雷丘',    'Raichu',    '⚡',2],
+    [27,'穿山鼠',  'Sandshrew', '🏜️',1],[28,'穿山王',  'Sandslash', '🏜️',2],
+    [29,'尼多兰',  'Nidoran♀',  '💜',1],[30,'尼多娜',  'Nidorina',  '💜',1],[31,'尼多后',  'Nidoqueen', '💜',2],
+    [32,'尼多朗',  'Nidoran♂',  '💙',1],[33,'尼多力诺','Nidorino',  '💙',1],[34,'尼多王',  'Nidoking',  '💙',2],
+    [35,'双面娃娃','Clefairy',  '🌸',1],[36,'皮可西',  'Clefable',  '🌸',2],
+    [37,'六尾',    'Vulpix',    '🦊',1],[38,'九尾',    'Ninetales', '🦊',2],
+    [39,'胖丁',    'Jigglypuff','🎵',1],[40,'胖可丁',  'Wigglytuff','🎵',2],
+    [41,'超音蝠',  'Zubat',     '🦇',1],[42,'大嘴蝠',  'Golbat',    '🦇',2],
+    [43,'走路草',  'Oddish',    '🌿',1],[44,'臭臭花',  'Gloom',     '🌼',1],[45,'霸王花',  'Vileplume', '🌺',2],
+    [46,'派拉斯',  'Paras',     '🍄',1],[47,'派拉斯特','Parasect',  '🍄',2],
+    [48,'毛球',    'Venonat',   '🐛',1],[49,'摩鲁蛾',  'Venomoth',  '🦋',2],
+    [50,'地鼠',    'Diglett',   '🌱',1],[51,'三地鼠',  'Dugtrio',   '🌱',2],
+    [52,'喵喵',    'Meowth',    '🐱',1],[53,'猫老大',  'Persian',   '🐱',2],
+    [54,'可达鸭',  'Psyduck',   '🦆',1],[55,'哥达鸭',  'Golduck',   '🦆',2],
+    [56,'猴怪',    'Mankey',    '🐒',1],[57,'火爆猴',  'Primeape',  '🐒',2],
+    [63,'凯西',    'Abra',      '🥄',2],[79,'慢慢',    'Slowpoke',  '🦦',1],
+    [92,'鬼斯',    'Gastly',    '👻',1],[94,'耿鬼',    'Gengar',    '👻',2],
+    [104,'卡拉卡拉','Cubone',   '🦴',1],[113,'吉利蛋', 'Chansey',   '🥚',2],
+    [131,'拉普拉斯','Lapras',   '🌊',2],[133,'伊布',   'Eevee',     '🦊',2],
+    [143,'卡比兽', 'Snorlax',   '😴',2],[147,'迷你龙', 'Dratini',   '🐉',1],[149,'快龙',   'Dragonite', '🐉',2],
+    [144,'急冻鸟', 'Articuno',  '🧊',3],[145,'闪电鸟', 'Zapdos',    '🌩️',3],[146,'火焰鸟', 'Moltres',   '🔥',3],
+    [150,'超梦',   'Mewtwo',    '🔮',3],[151,'梦幻',   'Mew',       '💗',3],
+  ];
+  return D.map(([id,zh,en,emoji,rarity])=>({name:`${zh}\n${en}`,emoji,rarity,id}));
+})();
+
+// sprite helpers
+const spriteUrl = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+const artUrl    = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+</script>
+
+<!-- BG LAYERS -->
+<div class="bg-layer"  id="bgLayer"></div>
+<div class="stars-layer" id="starsLayer"></div>
+
+<!-- USER SELECT -->
+<div class="screen active" id="userScreen">
+  <!-- 右上角操作区 -->
+  <div style="position:absolute;top:14px;right:14px;z-index:10;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+    <div style="display:flex;gap:6px">
+      <button class="lesson-selector-btn" style="position:static" onclick="triggerPhotoUpload()">📷 上传课程</button>
+      <button class="lesson-selector-btn" style="position:static" id="lessonSelectorBtn" onclick="toggleLessonDropdown()">
+        📚 切换课程 <span class="ls-arrow">▾</span>
+      </button>
+    </div>
+    <!-- 课程下拉列表 -->
+    <div class="lesson-dropdown" id="lessonDropdown">
+      <div class="lesson-dropdown-inner">
+        <div class="lesson-list" id="lessonSelectorZone"></div>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="photoFileInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+
+  <div class="pokeball-logo"></div>
+  <div class="user-screen-title">宝可梦英文学习大作战</div>
+  <div class="user-screen-sub">🎮 选择你的训练家！Choose Your Trainer!</div>
+  <div class="user-grid" id="userGrid"></div>
+  <div class="user-other-zone">
+    <div class="user-other-label">— 或者输入你的名字加入 —</div>
+    <div class="user-other-row">
+      <input class="user-name-input" id="otherUserInput" placeholder="你叫什么名字？" maxlength="10"
+        onkeydown="if(event.key==='Enter')selectOtherUser()">
+      <button class="btn btn-start" style="padding:11px 22px;font-size:.9rem" onclick="selectOtherUser()">✏️ 加入</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI PHOTO MODAL -->
+<div class="ai-modal-overlay" id="aiModalOverlay">
+  <div class="ai-modal">
+    <button class="ai-modal-close" onclick="closeAiModal()">✕</button>
+    <div id="aiModalContent"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="game-header" id="gameHeader" style="display:none">
+  <div class="header-row1">
+    <button class="gallery-btn-header" onclick="openGallery()">
+      📖 图鉴<span class="gallery-badge" id="galleryCount">0</span>
+    </button>
+    <h1>🎮 宝可梦英文学习大作战</h1>
+    <div style="width:74px"></div>
+  </div>
+  <div class="header-row2">
+    <span class="hp-label">HP</span>
+    <div class="hp-bar"><div class="hp-fill" id="hpFill" style="width:100%"></div></div>
+    <span class="score-display">⭐<span id="scoreDisplay">0</span></span>
+  </div>
+</div>
+
+<!-- SPEED -->
+<div class="speed-widget" id="speedWidget" style="display:none">
+  <span class="speed-label">🔊</span>
+  <button class="spd-btn" id="spd-slow" onclick="setSpeed(.6,'slow')">慢</button>
+  <button class="spd-btn active" id="spd-mid"  onclick="setSpeed(.9,'mid')">中</button>
+  <button class="spd-btn" id="spd-fast" onclick="setSpeed(1.3,'fast')">快</button>
+</div>
+
+<!-- TITLE -->
+<div class="screen" id="titleScreen">
+  <div class="pokeball-logo"></div>
+  <div class="title-main" id="titleMain"></div>
+  <div class="title-sub"  id="titleSub"></div>
+  <div class="unit-badge" id="unitBadge"></div>
+  <div id="leaderboardZone"></div>
+  <div class="level-previews" id="levelPreviews"></div>
+  <button class="btn btn-start" onclick="startGame()">🎮 开始冒险 START!</button>
+  <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;justify-content:center">
+    <button class="btn-speak" id="pokedexTitleBtn" style="border-color:var(--yellow);color:var(--yellow)" onclick="openPokedex()">📖 宝可梦图鉴</button>
+    <button class="btn-speak" style="border-color:rgba(255,255,255,.4)" onclick="showScreen('userScreen')">👤 切换训练家</button>
+  </div>
+</div>
+
+<!-- LEVEL -->
+<div class="screen" id="levelScreen">
+  <div class="level-title-banner fade-in">
+    <h2 id="levelTitle"></h2>
+    <p  id="levelSubtitle"></p>
+  </div>
+  <div class="progress-dots" id="progressDots"></div>
+  <!-- TIMER -->
+  <div class="timer-wrap" id="timerWrap" style="display:none">
+    <div class="timer-svg-wrap">
+      <svg class="timer-svg" viewBox="0 0 58 58">
+        <circle cx="29" cy="29" r="25" stroke="rgba(255,255,255,.15)" stroke-width="5" fill="none"/>
+        <circle id="timerArc" cx="29" cy="29" r="25"
+          stroke="#ffcb05" stroke-width="5" fill="none"
+          stroke-linecap="round"
+          stroke-dasharray="157" stroke-dashoffset="0"
+          transform="rotate(-90 29 29)" style="transition:stroke-dashoffset .9s linear,stroke .3s;"/>
+      </svg>
+      <div class="timer-num" id="timerNum">60</div>
+    </div>
+    <div class="timer-label"><b id="timerAccLabel">准确率 --%</b>回答正确可抓宝可梦！</div>
+  </div>
+  <div id="gameArea"></div>
+  <div class="feedback-banner feedback-neutral" id="feedbackBanner"></div>
+  <button class="btn btn-next" id="nextBtn" style="display:none" onclick="handleNext()">下一题 NEXT ▶</button>
+</div>
+
+<!-- POKEBALL CATCH OVERLAY -->
+<div class="catch-overlay" id="catchOverlay">
+  <div class="catch-wrap">
+    <div class="catch-pk-name" id="catchPkName"></div>
+    <div class="catch-pk-display" id="catchPkDisplay"></div>
+    <div class="catch-ball-wrap"><div class="catch-ball" id="catchBall"></div></div>
+    <div class="catch-result" id="catchResult"></div>
+    <div class="catch-accuracy-bar" id="catchAccBar" style="display:none">
+      <div class="catch-accuracy-label" id="catchAccLabel"></div>
+      <div class="catch-accuracy-track"><div class="catch-accuracy-fill" id="catchAccFill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL COMPLETE -->
+<div class="screen" id="levelCompleteScreen">
+  <div class="complete-card fade-in">
+    <div class="complete-icon"  id="completeIcon"></div>
+    <div class="complete-title" id="completeTitle"></div>
+    <div class="stars"          id="completeStars"></div>
+    <div class="complete-msg"   id="completeMsg"></div>
+    <div class="reward-section" id="rewardSection"></div>
+    <div id="completeWordReview"></div>
+    <br>
+    <button class="btn btn-next" id="continueBtn" onclick="continueToNext()">继续冒险 CONTINUE ▶</button>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="screen" id="finalScreen">
+  <div class="final-card fade-in">
+    <div class="final-title">🏆 冒险完成！</div>
+    <div class="final-subtitle">All Levels Complete!</div>
+    <div id="finalPrizeImg"></div>
+    <div style="color:#aef;margin-bottom:5px;font-weight:700">你收服了终极宝可梦</div>
+    <div class="prize-name" id="prizeName"></div>
+    <div class="final-stats" id="finalStats"></div>
+    <div style="margin:10px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-speak" id="prizeSpeak">🔊 听名字</button>
+      <button class="btn-speak" onclick="openGallery()" style="border-color:var(--yellow);color:var(--yellow)">📖 查看图鉴</button>
+    </div>
+    <br>
+    <button class="btn btn-replay" onclick="replayGame()">🔄 再玩一次 REPLAY</button>
+  </div>
+</div>
+
+<!-- MASCOT -->
+<div class="mascot-area" id="mascot" style="display:none" onclick="openGallery()" title="查看图鉴">
+  <img id="mascotImg" src="" alt="mascot">
+</div>
+
+<!-- GALLERY MODAL -->
+<div class="modal-overlay" id="galleryModal" onclick="closeGallery(event)">
+  <div class="gallery-modal" onclick="event.stopPropagation()">
+    <button class="gallery-close" onclick="closeGallery()">✕</button>
+    <h2>📖 宝可梦图鉴</h2>
+    <p class="gallery-sub" id="gallerySub">已收集 0 / 14</p>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</div>
+
+<!-- ===================== ENGINE ===================== -->
+<script>
+// ── USER MANAGEMENT ──────────────────────────────────────────────────────────
+const KNOWN_USERS=[
+  {name:'姚尧',emoji:'🌟',color:'#ffcb05'},
+  {name:'姚烁',emoji:'⚡',color:'#3d7dca'}
+];
+let currentUser='';
+
+function getAllUsers(){try{return JSON.parse(localStorage.getItem('pk_all_users')||'[]');}catch(e){return[];}}
+function loadUserGallery(n){try{return JSON.parse(localStorage.getItem('pk_gallery_'+n)||'[]');}catch(e){return[];}}
+
+function saveUserGallery(n,g){
+  localStorage.setItem('pk_gallery_'+n,JSON.stringify(g));
+  const u=getAllUsers();if(!u.includes(n)){u.push(n);localStorage.setItem('pk_all_users',JSON.stringify(u));}
+  // 同步到服务器，触发广播给所有其他客户端
+  fetch('/api/gallery/'+encodeURIComponent(n),{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(g)
+  }).catch(()=>{});
+}
+
+// 同步状态指示器
+function setSyncStatus(ok){
+  let el=document.getElementById('syncDot');
+  if(!el){
+    el=document.createElement('div');
+    el.id='syncDot';
+    el.style.cssText='position:fixed;bottom:10px;left:12px;z-index:999;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(4px);transition:all .4s';
+    document.body.appendChild(el);
+  }
+  el.textContent=ok?'🟢 已同步':'🔴 离线';
+  el.style.background=ok?'rgba(76,175,80,.25)':'rgba(227,53,13,.25)';
+  el.style.color=ok?'#a5d6a7':'#ef9a9a';
+}
+
+// 从服务器同步所有用户数据到 localStorage，并刷新当前界面
+async function syncFromServer(){
+  try{
+    const res=await fetch('/api/users',{cache:'no-store'});
+    if(!res.ok){setSyncStatus(false);return;}
+    const data=await res.json();
+    let changed=false;
+    Object.entries(data).forEach(([name,gallery])=>{
+      const prev=localStorage.getItem('pk_gallery_'+name);
+      const next=JSON.stringify(gallery);
+      if(prev!==next){localStorage.setItem('pk_gallery_'+name,next);changed=true;}
+      // 如果是当前用户且游戏未在进行中，同步到 state
+      if(name===currentUser){
+        const activeId=document.querySelector('.screen.active')?.id;
+        if(activeId!=='levelScreen'){
+          state.gallery=gallery;
+          document.getElementById('galleryCount').textContent=gallery.length;
+        }
+      }
+    });
+    const serverNames=Object.keys(data);
+    const prev=JSON.stringify(getAllUsers());
+    const merged=[...new Set([...getAllUsers(),...serverNames])];
+    if(JSON.stringify(merged)!==prev){localStorage.setItem('pk_all_users',JSON.stringify(merged));changed=true;}
+    setSyncStatus(true);
+    // 有数据变化时刷新当前界面
+    if(changed||serverNames.length>0){
+      const activeId=document.querySelector('.screen.active')?.id;
+      if(activeId==='userScreen')renderUserGrid();
+      else if(activeId==='titleScreen')document.getElementById('leaderboardZone').innerHTML=renderLeaderboard();
+    }
+  }catch(e){setSyncStatus(false);}
+}
+
+// 15 秒轮询兜底（WebSocket 断线时保证数据最终同步）
+setInterval(()=>syncFromServer(),15000);
+
+// WebSocket 实时同步
+let syncWs=null,syncRetryMs=2000;
+function connectSyncWS(){
+  const proto=location.protocol==='https:'?'wss:':'ws:';
+  syncWs=new WebSocket(proto+'//'+location.host+'/ws/sync');
+  syncWs.onopen=()=>{syncRetryMs=2000;setSyncStatus(true);};
+  syncWs.onmessage=e=>{
+    try{
+      const msg=JSON.parse(e.data);
+      if(msg.type==='gallery_update'){
+        // 更新本地缓存
+        localStorage.setItem('pk_gallery_'+msg.username,JSON.stringify(msg.gallery));
+        const u=getAllUsers();
+        if(!u.includes(msg.username)){u.push(msg.username);localStorage.setItem('pk_all_users',JSON.stringify(u));}
+        // 刷新当前可见的界面
+        const activeId=document.querySelector('.screen.active')?.id;
+        if(activeId==='userScreen')renderUserGrid();
+        else if(activeId==='titleScreen')document.getElementById('leaderboardZone').innerHTML=renderLeaderboard();
+        // 如果是当前用户，更新图鉴
+        if(msg.username===currentUser&&activeId!=='levelScreen'){
+          state.gallery=msg.gallery;
+          document.getElementById('galleryCount').textContent=state.gallery.length;
+        }
+      }
+    }catch(err){}
+  };
+  syncWs.onclose=()=>{setSyncStatus(false);syncRetryMs=Math.min(syncRetryMs*1.5,20000);setTimeout(connectSyncWS,syncRetryMs);};
+  syncWs.onerror=()=>syncWs.close();
+}
+// 定期发送 ping 保持连接
+setInterval(()=>{if(syncWs&&syncWs.readyState===1)syncWs.send('ping');},25000);
+
+async function selectUser(name){
+  currentUser=name;
+  // 先从 localStorage 快速加载
+  state.gallery=loadUserGallery(name);
+  document.getElementById('galleryCount').textContent=state.gallery.length;
+  // 再从服务器拉取最新数据（覆盖本地）
+  try{
+    const res=await fetch('/api/gallery/'+encodeURIComponent(name));
+    if(res.ok){
+      const sg=await res.json();
+      state.gallery=sg;
+      localStorage.setItem('pk_gallery_'+name,JSON.stringify(sg));
+      document.getElementById('galleryCount').textContent=state.gallery.length;
+    }
+  }catch(e){}
+  const u=getAllUsers();if(!u.includes(name)){u.push(name);localStorage.setItem('pk_all_users',JSON.stringify(u));}
+  initTitle();
+  showScreen('titleScreen');
+}
+function selectOtherUser(){
+  const n=(document.getElementById('otherUserInput').value||'').trim();
+  if(!n){document.getElementById('otherUserInput').focus();return;}
+  selectUser(n);
+}
+
+// ── Photo Upload & AI Content Generation ─────────────────────────────────────
+function triggerPhotoUpload(){
+  document.getElementById('photoFileInput').value='';
+  document.getElementById('photoFileInput').click();
+}
+
+async function handlePhotoUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  showAiModal('loading');
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload-photo', {method:'POST', body:formData});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'AI 处理失败');
+    showAiModal('result', data);
+  } catch(e) {
+    showAiModal('error', null, e.message);
+  }
+}
+
+let _pendingLesson = null;
+
+function showAiModal(state, lesson, errorMsg){
+  const overlay = document.getElementById('aiModalOverlay');
+  const content = document.getElementById('aiModalContent');
+  overlay.classList.add('open');
+
+  if(state === 'loading'){
+    content.innerHTML = `
+      <span class="ai-spinner">🔍</span>
+      <div class="ai-modal-title">AI 正在分析照片…</div>
+      <div class="ai-modal-body">正在识别图片中的英语学习内容，请稍候</div>`;
+    return;
+  }
+  if(state === 'error'){
+    content.innerHTML = `
+      <div class="ai-modal-title">❌ 出错了</div>
+      <div class="ai-error">${errorMsg || '未知错误'}</div>
+      <div class="ai-modal-btns" style="margin-top:16px">
+        <button class="btn btn-start" style="padding:10px 24px;font-size:.9rem" onclick="closeAiModal()">关闭</button>
+      </div>`;
+    return;
+  }
+  if(state === 'result' && lesson){
+    _pendingLesson = lesson;
+    const w1 = Object.entries(lesson.level1_words||{});
+    const w2 = Object.entries(lesson.level2_words||{});
+    const wordRows = [...w1,...w2].map(([en,zh])=>
+      `<div class="ai-word-row"><span class="ai-word-en">${en}</span><span class="ai-word-zh">${zh}</span></div>`
+    ).join('');
+    const sentences = (lesson.level3_sentences||[]).map(s=>
+      `<div class="ai-word-row"><span class="ai-word-en" style="color:#aef">${s}</span></div>`
+    ).join('');
+    content.innerHTML = `
+      <div class="ai-modal-title">✨ AI 识别完成！</div>
+      <div class="ai-modal-body">主题：<strong style="color:var(--yellow)">${lesson.unit||''}</strong><br>识别到 ${w1.length} 个基础词 + ${w2.length} 个进阶词 + ${(lesson.level3_sentences||[]).length} 个句子</div>
+      <div class="ai-word-preview">${wordRows}${sentences}</div>
+      <div class="ai-modal-btns">
+        <button class="btn btn-start" style="padding:11px 26px;font-size:.92rem" onclick="applyAiLesson()">🎮 用这些内容开始游戏！</button>
+        <button class="btn btn-replay" style="padding:11px 26px;font-size:.92rem;background:linear-gradient(135deg,#4a148c,#6a1b9a)" onclick="triggerPhotoUpload();closeAiModal()">📷 重新上传</button>
+      </div>`;
+  }
+}
+
+function applyAiLesson(){
+  const lesson = _pendingLesson;
+  if(!lesson) return;
+  _pendingLesson = null;
+  saveAiLesson(lesson);
+  setActiveLesson(lesson);
+  closeAiModal();
+  renderLessonSelector();
+  if(currentUser) showScreen('titleScreen'), initTitleScreen();
+  else { alert('请先选择或输入你的训练家名字，然后再开始游戏！'); }
+}
+
+function closeAiModal(){
+  document.getElementById('aiModalOverlay').classList.remove('open');
+}
+
+function toggleLessonDropdown(){
+  const btn = document.getElementById('lessonSelectorBtn');
+  const drop = document.getElementById('lessonDropdown');
+  const isOpen = drop.classList.contains('open');
+  drop.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+
+function renderLessonSelector(){
+  const zone = document.getElementById('lessonSelectorZone');
+  if(!zone) return;
+  const aiLessons = getAiLessons();
+
+  const isOriginal = LESSON_DATA.unit === ORIGINAL_LESSON.unit &&
+                     LESSON_DATA.title === ORIGINAL_LESSON.title;
+
+  const origCard = `
+    <div class="lesson-card ${isOriginal?'active':''}" onclick="selectLesson('original')">
+      <span class="lesson-card-icon">📘</span>
+      <div class="lesson-card-info">
+        <div class="lesson-card-name">${ORIGINAL_LESSON.title}${isOriginal?'<span class="lesson-active-badge">当前</span>':''}</div>
+        <div class="lesson-card-meta">${ORIGINAL_LESSON.unit} · 默认课程</div>
+      </div>
+    </div>`;
+
+  const aiCards = aiLessons.map((l,i)=>{
+    const isActive = LESSON_DATA.unit===l.unit && LESSON_DATA.title===l.title;
+    return `
+      <div class="lesson-card ${isActive?'active':''}" onclick="selectLesson(${i})">
+        <span class="lesson-card-icon">🤖</span>
+        <div class="lesson-card-info">
+          <div class="lesson-card-name">${l.title||l.unit||'AI课程'}${isActive?'<span class="lesson-active-badge">当前</span>':''}</div>
+          <div class="lesson-card-meta">${l.unit||''} · AI生成 ${l._savedAt||''}</div>
+        </div>
+        <button class="lesson-card-del" title="删除" onclick="event.stopPropagation();removeLesson(${i})">🗑</button>
+      </div>`;
+  }).join('');
+
+  zone.innerHTML = origCard + aiCards;
+}
+
+function selectLesson(index){
+  if(index === 'original'){
+    resetToOriginalLesson();
+  } else {
+    const list = getAiLessons();
+    if(list[index]) setActiveLesson(list[index]);
+  }
+  renderLessonSelector();
+  // 选完自动收起
+  document.getElementById('lessonDropdown').classList.remove('open');
+  document.getElementById('lessonSelectorBtn').classList.remove('open');
+  if(currentUser) initTitleScreen();
+}
+
+function removeLesson(index){
+  deleteAiLesson(index);
+  const list = getAiLessons();
+  if(!list.length) resetToOriginalLesson();
+  renderLessonSelector();
+}
+
+function renderUserGrid(){
+  const allUsers=getAllUsers();
+  const extras=allUsers.filter(u=>!KNOWN_USERS.find(k=>k.name===u));
+  const display=[...KNOWN_USERS,...extras.map(n=>({name:n,emoji:'🎮',color:'#9c27b0'}))];
+  document.getElementById('userGrid').innerHTML=display.map(u=>{
+    const g=loadUserGallery(u.name);
+    const preview=g.slice(0,3).map(p=>p.emoji).join('');
+    return `<div class="user-card" style="--user-color:${u.color}" onclick="selectUser('${u.name}')">
+      <span class="user-avatar">${u.emoji}</span>
+      <div class="user-name">${u.name}</div>
+      <div class="user-pk-count">${g.length?'已收集 '+g.length+' 只宝可梦 🏆':'还没有宝可梦，快去捕捉！'}</div>
+      ${preview?'<div class="user-pk-preview">'+preview+'</div>':''}
+    </div>`;
+  }).join('');
+}
+
+function renderLeaderboard(){
+  const all=getAllUsers();
+  if(!all.length)return '';
+  const ranked=all.map(n=>({name:n,count:loadUserGallery(n).length,emoji:KNOWN_USERS.find(k=>k.name===n)?.emoji||'🎮'})).sort((a,b)=>b.count-a.count);
+  const top=ranked[0]?.count||1;
+  const medals=['🥇','🥈','🥉'];
+  return '<div class="leaderboard fade-in"><div class="lb-title">🏆 训练家宝可梦排行榜</div>'
+    +ranked.map((u,i)=>`<div class="lb-row${u.name===currentUser?' lb-current':''}">
+      <span class="lb-rank">${medals[i]||i+1}</span>
+      <span class="lb-emoji">${u.emoji}</span>
+      <div style="flex:1"><div style="display:flex;justify-content:space-between">
+        <span class="lb-name">${u.name}</span><span class="lb-count">${u.count} 只</span>
+      </div><div class="lb-bar"><div class="lb-bar-fill" style="width:${Math.round(u.count/top*100)}%"></div></div></div>
+    </div>`).join('')+'</div>';
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let state={currentLevel:0,currentQ:0,score:0,hp:100,maxHp:100,levelData:[],answered:false,gallery:[],correct:0,total:0};
+let speechRate=0.9;
+
+// ── TIMER ─────────────────────────────────────────────────────────────────────
+const TIMER_SECS=60;
+const TIMER_C=2*Math.PI*25; // ≈157
+let timerIv=null,timerLeft=0;
+
+function startTimer(onExpire){
+  clearTimer();
+  timerLeft=TIMER_SECS;
+  document.getElementById('timerWrap').style.display='flex';
+  _updateTimerUI();
+  timerIv=setInterval(()=>{
+    timerLeft--;
+    _updateTimerUI();
+    if(timerLeft<=0){clearTimer();onExpire();}
+  },1000);
+}
+function clearTimer(){if(timerIv){clearInterval(timerIv);timerIv=null;}}
+function _updateTimerUI(){
+  const n=document.getElementById('timerNum'),arc=document.getElementById('timerArc');
+  if(!n||!arc)return;
+  n.textContent=timerLeft;
+  arc.style.strokeDashoffset=TIMER_C*(1-timerLeft/TIMER_SECS);
+  const clr=timerLeft>20?'#ffcb05':timerLeft>10?'#ff9800':'#e3350d';
+  arc.style.stroke=clr; n.style.color=clr;
+  // update accuracy label
+  const acc=state.total>0?Math.round(state.correct/state.total*100):null;
+  const al=document.getElementById('timerAccLabel');
+  if(al)al.textContent=acc!==null?`准确率 ${acc}%`:'准确率 --';
+}
+function handleTimerExpire(){
+  if(state.answered)return;
+  state.answered=true; state.total++;
+  damageHp(18);
+  showFeedback('wrong','⏰ 时间到！Time\'s up!');
+  const mode=LESSON_DATA.levels[state.currentLevel].mode;
+  if(mode==='listen_choose'){
+    document.querySelectorAll('.choice-btn').forEach(b=>{b.disabled=true;if(b.textContent.trim()===state.levelData[state.currentQ].zh)b.classList.add('correct');});
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderListenChoose(),1900);
+  } else if(mode==='spell'){
+    const tgt=spellState.item.en.toLowerCase().replace(/\s/g,'');
+    tgt.split('').forEach((l,i)=>{const b=document.getElementById('sbox_'+i);if(b){b.textContent=l;b.classList.add('filled');b.style.borderColor='var(--red)';b.style.color='#ef9a9a';}});
+    // disable all keys
+    document.querySelectorAll('.key-btn').forEach(k=>k.disabled=true);
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderSpellGame(),2100);
+  } else if(mode==='match'){
+    completeLevel();
+  } else {
+    // sentence builder
+    const clean=state.levelData[state.currentQ].sentence.replace(/[.!?,;:]/g,'').replace(/\s+/g,' ').trim().split(' ');
+    clean.forEach((w,i)=>{const s=document.getElementById('slot_'+i);if(s){s.textContent=w;s.classList.add('filled');s.style.borderColor='var(--red)';}});
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderSentenceBuilder(),2100);
+  }
+}
+
+// ── QWERTY KEYBOARD ───────────────────────────────────────────────────────────
+const QWERTY=[['q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['z','x','c','v','b','n','m']];
+function buildQwerty(targetLetters){
+  const need={};targetLetters.forEach(l=>{need[l]=(need[l]||0)+1;});
+  return `<div class="qwerty-keyboard">`+QWERTY.map(row=>
+    `<div class="qwerty-row">${row.map(l=>
+      `<button class="key-btn" id="key_${l}" data-letter="${l}"
+        onclick="placeLetterQwerty('${l}')">${l.toUpperCase()}</button>`
+    ).join('')}</div>`
+  ).join('')+`<div class="qwerty-row">
+    <button class="key-btn key-backspace" onclick="deleteSpellLetter()">⌫ 退格</button>
+  </div></div>`;
+}
+function updateKeyStates(){/* 键盘外观保持统一，不做提示 */}
+
+// ── POKEBALL CATCH ANIMATION ──────────────────────────────────────────────────
+function showCatchAnimation(pk,accuracy,onDone){
+  const prob=accuracy>=1?.99:accuracy>=.95?.9:accuracy>=.9?.75:accuracy>=.8?.55:0;
+  const caught=prob>0&&Math.random()<prob;
+  const overlay=document.getElementById('catchOverlay');
+  const pkDisp=document.getElementById('catchPkDisplay');
+  const ball=document.getElementById('catchBall');
+  const res=document.getElementById('catchResult');
+  const accBar=document.getElementById('catchAccBar');
+  const accFill=document.getElementById('catchAccFill');
+  const accLbl=document.getElementById('catchAccLabel');
+
+  // Set Pokemon display
+  document.getElementById('catchPkName').textContent=pk.name.replace('\n',' ');
+  const imgEl=document.createElement('img');
+  imgEl.className='catch-pk-img';
+  imgEl.src=artUrl(pk.id);
+  imgEl.onerror=()=>{imgEl.style.display='none';const em=document.createElement('span');em.className='catch-pk-emoji';em.textContent=pk.emoji;pkDisp.appendChild(em);};
+  pkDisp.innerHTML='';pkDisp.appendChild(imgEl);
+  res.textContent='';
+
+  // Accuracy bar
+  const accPct=Math.round(accuracy*100);
+  accBar.style.display='block';
+  accLbl.textContent=`答题准确率 ${accPct}%  → 捕获概率 ${Math.round(prob*100)}%`;
+  accFill.style.background=accPct>=90?'#4caf50':accPct>=80?'#ff9800':'#e3350d';
+
+  overlay.classList.add('open');
+  ball.style.animation='none'; ball.style.opacity='1';
+  const pkEl=pkDisp.querySelector('.catch-pk-img,.catch-pk-emoji');
+
+  // Step 1: Ball flies in
+  setTimeout(()=>{
+    ball.style.animation='ballFlyIn .55s ease forwards';
+    // Accuracy bar fill
+    setTimeout(()=>{accFill.style.width=accPct+'%';},200);
+  },300);
+
+  // Step 2: Pokemon gets sucked in
+  setTimeout(()=>{
+    if(pkEl)pkEl.style.animation='pkSuckIn .45s ease forwards';
+  },1000);
+
+  // Step 3: Ball wobbles
+  setTimeout(()=>{
+    ball.style.animation='ballWobble .55s ease 2';
+  },1600);
+
+  if(caught){
+    // Caught!
+    setTimeout(()=>{
+      ball.style.animation='ballGlow 1s ease infinite';
+      res.style.color='#4caf50';
+      res.textContent='🎉 捕获成功！Caught!';
+      document.body.style.animation='none';
+      confetti({particleCount:100,spread:100,origin:{y:.6},colors:['#ffcb05','#4caf50','#3d7dca']});
+      // Add to gallery
+      state.gallery.push(pk);
+      document.getElementById('galleryCount').textContent=state.gallery.length;
+      if(currentUser)saveUserGallery(currentUser,state.gallery);
+    },2800);
+  } else {
+    // Escaped!
+    setTimeout(()=>{
+      ball.style.animation='ballBreak .4s ease forwards';
+      setTimeout(()=>{
+        if(pkEl){pkEl.style.animation='';pkEl.style.opacity='1';pkEl.style.transform='';
+          void pkEl.offsetWidth;pkEl.style.animation='pkEscape .5s ease forwards';}
+      },300);
+      res.style.color='var(--red)';
+      res.textContent=accPct<80?'📊 准确率不足，宝可梦逃走了！':'💨 宝可梦逃走了！再接再厉！';
+    },2800);
+  }
+
+  // Close after animation
+  setTimeout(()=>{
+    overlay.classList.remove('open');
+    ball.style.animation=''; accFill.style.width='0%';
+    if(pkEl){pkEl.style.animation='';pkEl.style.opacity='1';pkEl.style.transform='';}
+    onDone(caught);
+  },5200);
+}
+
+// SPEED
+function setSpeed(r,k){speechRate=r;['slow','mid','fast'].forEach(x=>document.getElementById('spd-'+x)?.classList.toggle('active',x===k));}
+
+// SPEECH
+function speakText(t){if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=speechRate;window.speechSynthesis.speak(u);}
+
+// POKEMON HELPERS
+function pkImg(id,size='sm'){
+  const img=document.createElement('img');
+  img.src=size==='art'?artUrl(id):spriteUrl(id);
+  img.onerror=()=>img.style.display='none';
+  return img;
+}
+
+// GALLERY
+function openPokedex(){
+  const total=POKEMON_POOL.length, owned=state.gallery.length;
+  document.getElementById('gallerySub').textContent=`全部 ${total} 只 | 已收集 ${owned} 只 | 完成度 ${Math.round(owned/total*100)}%`;
+  const g=document.getElementById('galleryGrid');
+  g.className='gallery-grid pokedex-view';
+  const starStr=r=>'★'.repeat(r)+'☆'.repeat(3-r);
+  const starClr=r=>r===3?'#ffcb05':r===2?'#aef':'#ccc';
+  g.innerHTML=POKEMON_POOL.map(p=>{
+    const got=!!state.gallery.find(x=>x.name===p.name);
+    if(got){
+      return `<div class="gallery-slot collected">
+        <img class="gs-img" src="${artUrl(p.id)}" alt="${p.name}"
+          onerror="this.onerror=null;this.src='${spriteUrl(p.id)}';this.onerror=()=>{this.style.display='none';this.nextElementSibling.style.display='block'}">
+        <span class="gs-emoji-fallback" style="display:none">${p.emoji}</span>
+        <div class="gs-name">${p.name.replace('\n','<br>')}</div>
+        <div class="gs-stars" style="color:${starClr(p.rarity)}">${starStr(p.rarity)}</div>
+        <div class="gs-owned-badge">已获得</div>
+      </div>`;
+    } else {
+      return `<div class="gallery-slot empty">
+        <img class="gs-img" src="${spriteUrl(p.id)}" alt="???">
+        <span class="gs-emoji-fallback" style="display:none">❓</span>
+        <div class="gs-name" style="color:rgba(255,255,255,.28)">No.${String(p.id).padStart(3,'0')}</div>
+        <div class="gs-stars" style="color:rgba(255,255,255,.15)">${starStr(p.rarity)}</div>
+      </div>`;
+    }
+  }).join('');
+  document.getElementById('galleryModal').classList.add('open');
+}
+
+function openGallery(){
+  document.getElementById('gallerySub').textContent=`已收集 ${state.gallery.length} / ${POKEMON_POOL.length}`;
+  const g=document.getElementById('galleryGrid');
+  const starStr=r=>'★'.repeat(r)+'☆'.repeat(3-r);
+  const starClr=r=>r===3?'#ffcb05':r===2?'#aef':'#ccc';
+  // Use official-artwork for key Pokemon; sprite for others; emoji as final fallback
+  const galleryImgSrc=p=>[25,7,4,778].includes(p.id)?artUrl(p.id):spriteUrl(p.id);
+  let html=state.gallery.map(p=>`
+    <div class="gallery-slot collected">
+      <img class="gs-img" src="${galleryImgSrc(p)}" alt="${p.name}"
+           onerror="this.onerror=null;this.src='${spriteUrl(p.id)}';this.onerror=()=>{this.style.display='none';this.nextElementSibling.style.display='block';}">
+      <span class="gs-emoji-fallback" style="display:none">${p.emoji}</span>
+      <div class="gs-name">${p.name.replace('\n','<br>')}</div>
+      <div class="gs-stars" style="color:${starClr(p.rarity)}">${starStr(p.rarity)}</div>
+    </div>`).join('');
+  const empty=POKEMON_POOL.length-state.gallery.length;
+  for(let i=0;i<empty;i++)html+=`<div class="gallery-slot empty"><span class="gs-emoji-fallback">❓</span><div class="gs-name">???</div></div>`;
+  g.innerHTML=html||'<div style="grid-column:1/-1;text-align:center;color:#445;padding:25px;font-size:.9rem">通关关卡来收集宝可梦！</div>';
+  document.getElementById('galleryModal').classList.add('open');
+}
+function closeGallery(e){
+  if(!e||e.target===document.getElementById('galleryModal')){
+    document.getElementById('galleryModal').classList.remove('open');
+    document.getElementById('galleryGrid').className='gallery-grid'; // 重置，避免 pokedex-view 残留
+  }
+}
+
+// BG SETUP
+let bgBuilt=false;
+function buildBackground(){
+  if(bgBuilt)return; bgBuilt=true;
+  // Sparkles (small floating dots in the sky)
+  const sl=document.getElementById('starsLayer');
+  for(let i=0;i<40;i++){
+    const s=document.createElement('div'); s.className='star';
+    const sz=Math.random()*3+1.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--t:${2+Math.random()*4}s;--d:${Math.random()*4}s;`;
+    sl.appendChild(s);
+  }
+  // BG Pokémon sprites — pick 16 random from POKEMON_POOL
+  const bl=document.getElementById('bgLayer');
+  const shuffled=[...POKEMON_POOL].sort(()=>Math.random()-.5).slice(0,16);
+  shuffled.forEach((pk,i)=>{
+    const sz=54+Math.floor(Math.random()*28); // 54~82px
+    const el=document.createElement('div');
+    el.className='bg-pk-emoji';
+    el.style.cssText=`left:${(i*6.2+2)%94}%;top:${(i*13+4)%88}%;--dur:${5+i%6}s;--delay:${i*0.55}s;font-size:0;width:${sz}px;height:${sz}px;`;
+    const img=document.createElement('img');
+    img.src=spriteUrl(pk.id);
+    img.style.cssText=`width:100%;height:100%;image-rendering:pixelated;`;
+    img.onerror=()=>{el.style.fontSize=`${sz*0.7}px`;el.textContent=pk.emoji;img.remove();};
+    el.appendChild(img);
+    bl.appendChild(el);
+  });
+}
+
+// INIT
+function initTitle(){
+  document.getElementById('titleMain').textContent=(currentUser?'👋 '+currentUser+'的冒险！':LESSON_DATA.title);
+  document.getElementById('titleSub').textContent=LESSON_DATA.subtitle;
+  document.getElementById('unitBadge').textContent='📚 '+LESSON_DATA.unit;
+  document.getElementById('leaderboardZone').innerHTML=renderLeaderboard();
+  // 正确显示图鉴总数
+  const pb=document.getElementById('pokedexTitleBtn');
+  if(pb)pb.textContent=`📖 宝可梦图鉴 全 ${POKEMON_POOL.length} 只`;
+  const counts=[
+    Object.keys(LESSON_DATA.level1_words).length,
+    Object.keys(LESSON_DATA.level1_words).length,
+    Object.keys(LESSON_DATA.level2_words).length,
+    LESSON_DATA.level3_sentences.length
+  ];
+  document.getElementById('levelPreviews').innerHTML=LESSON_DATA.levels.map((lv,i)=>`
+    <div class="level-badge">
+      <div class="lv-icon">${lv.icon}</div>
+      <div class="lv-name">${lv.name}</div>
+      <div class="lv-count">${counts[i]}题</div>
+    </div>`).join('');
+  // Set mascot to Pikachu — official artwork with emoji fallback
+  const mascotImg=document.getElementById('mascotImg');
+  mascotImg.src=artUrl(25);
+  mascotImg.onerror=()=>{
+    mascotImg.style.display='none';
+    const em=document.createElement('span');
+    em.className='mascot-emoji'; em.textContent='⚡';
+    mascotImg.parentElement.appendChild(em);
+  };
+  buildBackground();
+}
+
+// HP / SCORE
+function addScore(p){state.score+=p;document.getElementById('scoreDisplay').textContent=state.score;}
+function damageHp(a){
+  state.hp=Math.max(0,state.hp-a);
+  document.getElementById('hpFill').style.width=(state.hp/state.maxHp*100)+'%';
+  document.getElementById('hpFill').style.background=state.hp>60?'linear-gradient(90deg,#4caf50,#8bc34a)':state.hp>30?'linear-gradient(90deg,#ff9800,#ffc107)':'linear-gradient(90deg,#e3350d,#ff6b35)';
+}
+function resetHp(){state.hp=100;document.getElementById('hpFill').style.width='100%';document.getElementById('hpFill').style.background='linear-gradient(90deg,#4caf50,#8bc34a)';}
+
+// FEEDBACK
+function showFeedback(type,msg){
+  const el=document.getElementById('feedbackBanner');
+  el.className='feedback-banner fade-in '+(type==='correct'?'feedback-correct':type==='wrong'?'feedback-wrong':'feedback-neutral');
+  el.textContent=msg;
+}
+function randMsg(a){return a[Math.floor(Math.random()*a.length)];}
+
+// START
+function startGame(){
+  const savedGallery=currentUser?loadUserGallery(currentUser):state.gallery;
+  Object.assign(state,{currentLevel:0,currentQ:0,score:0,hp:100,levelData:[],answered:false,gallery:savedGallery,correct:0,total:0});
+  document.getElementById('scoreDisplay').textContent='0';
+  document.getElementById('galleryCount').textContent=state.gallery.length;
+  ['gameHeader','speedWidget'].forEach(id=>document.getElementById(id).style.display='block');
+  document.getElementById('mascot').style.display='block';
+  resetHp(); showScreen('levelScreen'); loadLevel(0);
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// LOAD LEVEL
+function loadLevel(lvIdx){
+  const lv=LESSON_DATA.levels[lvIdx];
+  document.getElementById('levelTitle').textContent=lv.icon+' '+lv.name+': '+lv.subtitle;
+  if(lv.dataKey==='level1_words') state.levelData=Object.entries(LESSON_DATA.level1_words).map(([en,zh])=>({en,zh}));
+  else if(lv.dataKey==='level2_words') state.levelData=Object.entries(LESSON_DATA.level2_words).map(([en,zh])=>({en,zh}));
+  else state.levelData=LESSON_DATA.level3_sentences.map(s=>({sentence:s}));
+  state.currentQ=0; renderProgressDots();
+  const subs={listen_choose:'🔊 听音选词 - 选出你听到的单词！',spell:'✏️ 拼写挑战 - 点击字母拼出单词！',match:'🔗 中英连线 - 点击配对！',build_sentence:'🧩 排列句子 - 点击单词拼出句子！'};
+  document.getElementById('levelSubtitle').textContent=subs[lv.mode]||'';
+  if(lv.mode==='listen_choose') renderListenChoose();
+  else if(lv.mode==='spell')    renderSpellGame();
+  else if(lv.mode==='match')    renderMatchGame();
+  else                          renderSentenceBuilder();
+}
+
+// DOTS
+function renderProgressDots(){
+  const c=document.getElementById('progressDots');c.innerHTML='';
+  state.levelData.forEach((_,i)=>{const d=document.createElement('div');d.className='dot'+(i===0?' current':'');d.id='dot_'+i;c.appendChild(d);});
+}
+function updateDot(i){const d=document.getElementById('dot_'+i);if(d)d.className='dot done';const n=document.getElementById('dot_'+(i+1));if(n)n.className='dot current';}
+
+// LISTEN & CHOOSE
+function renderListenChoose(){
+  const item=state.levelData[state.currentQ];if(!item){completeLevel();return;}
+  document.getElementById('nextBtn').style.display='none';showFeedback('neutral','');state.answered=false;
+  startTimer(handleTimerExpire);
+  const all={...LESSON_DATA.level1_words,...LESSON_DATA.level2_words};
+  const choices=shuffle([item.zh,...shuffle(Object.values(all).filter(z=>z!==item.zh)).slice(0,3)]);
+  const es=item.en.replace(/'/g,"\\'");
+  document.getElementById('gameArea').innerHTML=`
+    <div class="listen-zone">
+      <div class="listen-prompt">🔊 听一听，选出正确的中文意思：</div>
+      <div class="listen-word">${item.en}</div>
+      <div style="font-size:.8rem;color:#aef;font-style:italic">点击单词可重新朗读</div>
+      <button class="btn-speak" style="margin-top:9px" onclick="speakText('${es}')">🔊 再听一次</button>
+    </div>
+    <div class="choices-grid">
+      ${choices.map(c=>`<button class="choice-btn" onclick="answerLC(this,'${c.replace(/'/g,"\\'")}','${item.zh.replace(/'/g,"\\'")}','${es}')">${c}</button>`).join('')}
+    </div>`;
+  setTimeout(()=>speakText(item.en),400);
+}
+function answerLC(btn,chosen,correct,en){
+  if(state.answered)return;state.answered=true;clearTimer();state.total++;
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  if(chosen===correct){
+    state.correct++;btn.classList.add('correct');addScore(10);speakText(en);
+    showFeedback('correct',randMsg(LESSON_DATA.messages.correct));
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderListenChoose(),1200);
+  }else{
+    btn.classList.add('wrong');damageHp(10);
+    showFeedback('wrong',randMsg(LESSON_DATA.messages.wrong));
+    document.querySelectorAll('.choice-btn').forEach(b=>{if(b.textContent.trim()===correct)b.classList.add('correct');});
+    setTimeout(()=>{state.answered=false;renderListenChoose();},1800);
+  }
+}
+
+// SPELL GAME – QWERTY keyboard
+let spellState={item:null,wordLengths:[],totalLetters:0,answer:[],need:{},used:{}};
+function renderSpellGame(){
+  const item=state.levelData[state.currentQ];if(!item){completeLevel();return;}
+  document.getElementById('nextBtn').style.display='none';showFeedback('neutral','');state.answered=false;
+  const phrase=item.en.toLowerCase(),words=phrase.split(' '),letters=phrase.replace(/\s/g,'').split('');
+  const need={};letters.forEach(l=>{need[l]=(need[l]||0)+1;});
+  spellState={item,wordLengths:words.map(w=>w.length),totalLetters:letters.length,answer:new Array(letters.length).fill(null),need,used:{}};
+  let pos=0;
+  const blanks=words.map(w=>`<div class="spell-word-group">${w.split('').map(()=>`<div class="spell-box" id="sbox_${pos++}"></div>`).join('')}</div>`).join('<span class="spell-sep">·</span>');
+  document.getElementById('gameArea').innerHTML=`
+    <div class="spell-prompt">
+      <div class="spell-zh">${item.zh}</div>
+      <button class="btn-speak" onclick="speakText('${item.en.replace(/'/g,"\\'")}')">🔊 听发音</button>
+    </div>
+    <div class="spell-area">${blanks}</div>
+    <div class="spell-hint-row">
+      <span style="color:#aef;font-size:.78rem;font-weight:700">${letters.length} 个字母</span>
+    </div>
+    ${buildQwerty(letters)}`;
+  setTimeout(()=>speakText(item.en),400);
+  startTimer(handleTimerExpire);
+}
+function placeLetterQwerty(l){
+  if(state.answered)return;
+  const avail=(spellState.need[l]||0)-(spellState.used[l]||0);
+  if(avail<=0)return;
+  const next=spellState.answer.findIndex(a=>a===null);if(next===-1)return;
+  spellState.answer[next]=l;
+  spellState.used[l]=(spellState.used[l]||0)+1;
+  const box=document.getElementById('sbox_'+next);box.textContent=l;box.classList.add('filled');
+  updateKeyStates();
+  if(spellState.answer.every(a=>a!==null))checkSpelling();
+}
+function deleteSpellLetter(){
+  for(let i=spellState.totalLetters-1;i>=0;i--){
+    if(spellState.answer[i]!==null){
+      const l=spellState.answer[i];spellState.answer[i]=null;
+      spellState.used[l]=Math.max(0,(spellState.used[l]||1)-1);
+      const b=document.getElementById('sbox_'+i);b.textContent='';b.classList.remove('filled');b.style.borderColor='';b.style.color='';
+      updateKeyStates();
+      break;
+    }
+  }
+}
+function checkSpelling(){
+  const built=spellState.answer.join('');
+  const target=spellState.item.en.toLowerCase().replace(/\s/g,'');
+  if(built===target){
+    clearTimer();state.total++;state.correct++;
+    addScore(25);speakText(spellState.item.en);
+    showFeedback('correct',randMsg(LESSON_DATA.messages.correct));
+    document.querySelectorAll('.spell-box.filled').forEach(b=>{b.style.borderColor='var(--green)';b.style.color='#a5d6a7';});
+    document.querySelectorAll('.key-btn').forEach(k=>k.disabled=true);
+    updateDot(state.currentQ++);state.answered=true;
+    if(state.currentQ>=state.levelData.length)setTimeout(completeLevel,1600);else setTimeout(renderSpellGame,1900);
+  }else{
+    damageHp(12);showFeedback('wrong','拼写有误！'+randMsg(LESSON_DATA.messages.wrong));
+    const ta=target.split(''),wrongIdx=[];
+    spellState.answer.forEach((l,i)=>{const b=document.getElementById('sbox_'+i);if(l!==ta[i]){b.style.borderColor='var(--red)';b.style.animation='shake .4s';wrongIdx.push(i);}else b.style.borderColor='var(--green)';});
+    setTimeout(()=>{
+      wrongIdx.forEach(i=>{
+        const l=spellState.answer[i];if(!l)return;
+        spellState.answer[i]=null;
+        spellState.used[l]=Math.max(0,(spellState.used[l]||1)-1);
+        const b=document.getElementById('sbox_'+i);b.textContent='';b.classList.remove('filled');b.style.borderColor='';b.style.animation='';
+      });
+      updateKeyStates();
+    },1100);
+  }
+}
+
+// MATCH GAME
+let matchState={selectedEn:null,selectedZh:null,matched:new Set(),words:[]};
+const LINE_COLORS=['#ffcb05','#4fc3f7','#81c784','#f48fb1','#ffb74d','#ce93d8'];
+function renderMatchGame(){
+  matchState={selectedEn:null,selectedZh:null,matched:new Set(),words:[...state.levelData]};
+  document.getElementById('nextBtn').style.display='none';
+  showFeedback('neutral','点击左边英文，再点右边中文，配对成功！');
+  startTimer(handleTimerExpire);
+  const enCol=matchState.words.map(w=>w.en),zhCol=shuffle([...matchState.words.map(w=>w.zh)]);
+  document.getElementById('gameArea').innerHTML=`
+    <div class="match-wrapper" id="matchWrapper">
+      <div class="match-container">
+        ${enCol.map((en,i)=>`
+          <div class="match-row">
+            <div class="match-item match-en" id="men_${i}" data-en="${en}" onclick="selEn(this)">
+              <span>${en}</span>
+              <button class="btn-speak" style="font-size:.65rem;padding:2px 6px;margin-left:4px" onclick="event.stopPropagation();speakText('${en.replace(/'/g,"\\'")}')">🔊</button>
+            </div>
+            <div class="match-item match-zh" id="mzh_${i}" data-zh="${zhCol[i]}" onclick="selZh(this)">${zhCol[i]}</div>
+          </div>`).join('')}
+      </div>
+      <svg class="match-svg" id="matchSvg"></svg>
+    </div>`;
+}
+function selEn(el){if(el.classList.contains('matched'))return;document.querySelectorAll('.match-en.selected').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');matchState.selectedEn=el;tryMatch();}
+function selZh(el){if(el.classList.contains('matched'))return;document.querySelectorAll('.match-zh.selected').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');matchState.selectedZh=el;tryMatch();}
+function tryMatch(){
+  if(!matchState.selectedEn||!matchState.selectedZh)return;
+  const en=matchState.selectedEn.dataset.en,zh=matchState.selectedZh.dataset.zh;
+  const correct=matchState.words.find(w=>w.en===en)?.zh;
+  if(zh===correct){
+    const color=LINE_COLORS[matchState.matched.size%LINE_COLORS.length];
+    drawLine(matchState.selectedEn,matchState.selectedZh,color);
+    [matchState.selectedEn,matchState.selectedZh].forEach(el=>{el.classList.remove('selected');el.classList.add('matched');el.style.borderColor=color;});
+    matchState.matched.add(en);addScore(15);speakText(en);state.total++;state.correct++;
+    showFeedback('correct',randMsg(LESSON_DATA.messages.correct));
+    updateDot(state.currentQ++);
+    if(matchState.matched.size>=matchState.words.length){clearTimer();setTimeout(completeLevel,900);}
+  }else{
+    [matchState.selectedEn,matchState.selectedZh].forEach(el=>el.classList.add('wrong-flash'));
+    state.total++;damageHp(8);showFeedback('wrong',randMsg(LESSON_DATA.messages.wrong));
+    setTimeout(()=>{matchState.selectedEn?.classList.remove('wrong-flash','selected');matchState.selectedZh?.classList.remove('wrong-flash','selected');matchState.selectedEn=null;matchState.selectedZh=null;},600);
+    return;
+  }
+  matchState.selectedEn=null;matchState.selectedZh=null;
+}
+function drawLine(enEl,zhEl,color){
+  const svg=document.getElementById('matchSvg'),wrap=document.getElementById('matchWrapper');if(!svg||!wrap)return;
+  const wr=wrap.getBoundingClientRect(),er=enEl.getBoundingClientRect(),zr=zhEl.getBoundingClientRect();
+  const x1=er.right-wr.left,y1=er.top+er.height/2-wr.top,x2=zr.left-wr.left,y2=zr.top+zr.height/2-wr.top,cx=(x1+x2)/2;
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d',`M${x1} ${y1} C${cx} ${y1},${cx} ${y2},${x2} ${y2}`);
+  p.setAttribute('stroke',color);p.setAttribute('stroke-width','3.5');p.setAttribute('fill','none');p.setAttribute('stroke-linecap','round');
+  const len=p.getTotalLength?p.getTotalLength():300;p.style.strokeDasharray=len;p.style.strokeDashoffset=len;svg.appendChild(p);
+  requestAnimationFrame(()=>{p.style.transition='stroke-dashoffset .4s ease';p.style.strokeDashoffset='0';});
+}
+
+// SENTENCE BUILDER
+let sentState={slots:[],wordBank:[],placed:[],cleanTarget:''};
+function renderSentenceBuilder(){
+  const item=state.levelData[state.currentQ];if(!item){completeLevel();return;}
+  document.getElementById('nextBtn').style.display='none';showFeedback('neutral','');state.answered=false;
+  startTimer(handleTimerExpire);
+  const clean=item.sentence.replace(/[.!?,;:]/g,'').replace(/\s+/g,' ').trim();
+  sentState.cleanTarget=clean;
+  const words=clean.split(' ');
+  sentState.wordBank=shuffle([...words]).map((w,i)=>({word:w,id:'chip_'+i,used:false}));
+  sentState.slots=words.map((_,i)=>({idx:i,filled:null}));sentState.placed=new Array(words.length).fill(null);
+  const es=item.sentence.replace(/'/g,"\\'");
+  document.getElementById('gameArea').innerHTML=`
+    <div style="text-align:center;color:#aef;margin-bottom:9px;font-size:.88rem;font-weight:700">🧩 排列单词，组成正确句子：</div>
+    <div class="sentence-display">${words.map((_,i)=>`<div class="word-slot" id="slot_${i}" data-idx="${i}" onclick="removeFromSlot(this)"></div>`).join('')}</div>
+    <div class="word-bank">${sentState.wordBank.map(w=>`<div class="word-chip" id="${w.id}" onclick="placeWord('${w.id}')">${w.word}</div>`).join('')}</div>
+    <div style="text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-speak" onclick="speakText('${es}')">🔊 听完整句子</button>
+      <button class="btn-speak" onclick="resetSentence()" style="background:rgba(255,100,50,.2);border-color:rgba(255,100,50,.5)">🔄 重置</button>
+    </div>`;
+  setTimeout(()=>speakText(item.sentence),400);
+}
+function placeWord(id){
+  const c=sentState.wordBank.find(w=>w.id===id);if(!c||c.used)return;
+  const next=sentState.slots.findIndex(s=>!s.filled);if(next===-1)return;
+  c.used=true;sentState.placed[next]=c;sentState.slots[next].filled=c;
+  document.getElementById(id).classList.add('used');
+  const s=document.getElementById('slot_'+next);s.textContent=c.word;s.classList.add('filled');
+  checkSentenceComplete();
+}
+function removeFromSlot(el){
+  const idx=parseInt(el.dataset.idx),c=sentState.placed[idx];if(!c)return;
+  c.used=false;sentState.placed[idx]=null;sentState.slots[idx].filled=null;
+  document.getElementById(c.id)?.classList.remove('used');el.textContent='';el.classList.remove('filled');
+}
+function resetSentence(){
+  sentState.wordBank.forEach(w=>{w.used=false;document.getElementById(w.id)?.classList.remove('used');});
+  sentState.placed.fill(null);sentState.slots.forEach(s=>s.filled=null);
+  document.querySelectorAll('.word-slot').forEach(s=>{s.textContent='';s.classList.remove('filled');});
+  showFeedback('neutral','');
+}
+function checkSentenceComplete(){
+  if(sentState.placed.some(p=>!p))return;
+  const built=sentState.placed.map(p=>p.word).join(' ');
+  if(built===sentState.cleanTarget){
+    clearTimer();state.total++;state.correct++;
+    addScore(20);speakText(state.levelData[state.currentQ].sentence);
+    showFeedback('correct',randMsg(LESSON_DATA.messages.correct));
+    document.querySelectorAll('.word-slot').forEach(s=>s.style.borderColor='var(--green)');
+    updateDot(state.currentQ++);state.answered=true;
+    if(state.currentQ>=state.levelData.length)setTimeout(completeLevel,1500);else setTimeout(renderSentenceBuilder,1800);
+  }else{
+    state.total++;damageHp(10);showFeedback('wrong','顺序不对！'+randMsg(LESSON_DATA.messages.wrong));
+    document.querySelectorAll('.word-slot').forEach(s=>{s.style.animation='shake .4s';setTimeout(()=>s.style.animation='',500);});
+    setTimeout(resetSentence,1000);
+  }
+}
+
+// LEVEL COMPLETE
+function completeLevel(){
+  clearTimer();
+  document.getElementById('timerWrap').style.display='none';
+  const lv=LESSON_DATA.levels[state.currentLevel];
+  const accuracy=state.total>0?state.correct/state.total:0;
+  const accPct=Math.round(accuracy*100);
+
+  // Try to pick a candidate pokemon (don't add to gallery yet)
+  const pool=POKEMON_POOL.filter(p=>!state.gallery.find(g=>g.name===p.name));
+  let candidatePk=null;
+  if(pool.length){
+    const w=pool.map(p=>state.currentLevel<=1?[5,2,1][p.rarity-1]:state.currentLevel===2?[2,5,2][p.rarity-1]:[1,2,5][p.rarity-1]);
+    const total=w.reduce((a,b)=>a+b,0);let r=Math.random()*total,idx=0;
+    for(let i=0;i<w.length;i++){r-=w[i];if(r<=0){idx=i;break;}}
+    candidatePk=pool[idx];
+  }
+
+  // Show pokeball animation if there's a candidate, otherwise go straight to complete screen
+  if(candidatePk){
+    showCatchAnimation(candidatePk,accuracy,(caught)=>{
+      _showCompleteScreen(lv,accPct,caught?candidatePk:null);
+    });
+  } else {
+    _showCompleteScreen(lv,accPct,null);
+  }
+}
+
+function _showCompleteScreen(lv,accPct,pk){
+  document.getElementById('completeIcon').textContent=lv.icon;
+  document.getElementById('completeTitle').textContent=LESSON_DATA.messages.level_clear[0];
+  const starStr=accPct>=90?'⭐⭐⭐':accPct>=70?'⭐⭐':'⭐';
+  document.getElementById('completeStars').textContent=starStr;
+  const pts={listen_choose:Object.keys(LESSON_DATA.level1_words).length*10,spell:Object.keys(LESSON_DATA.level1_words).length*25,match:Object.keys(LESSON_DATA.level2_words).length*15,build_sentence:LESSON_DATA.level3_sentences.length*20};
+  document.getElementById('completeMsg').innerHTML=`${LESSON_DATA.messages.level_clear[1]}<br><strong style="color:var(--yellow)">${lv.name}: ${lv.subtitle}</strong><br><span style="color:#aef">积分+${pts[lv.mode]||0}</span><br><span style="color:${accPct>=80?'#4caf50':'#ff9800'}">答题准确率 ${accPct}%</span>`;
+
+  const rarityLabel=r=>r===3?'★★★ 传说':r===2?'★★ 进阶':'★ 初阶';
+  const rarityColor=r=>r===3?'#ffcb05':r===2?'#aef':'#ccc';
+  if(pk){
+    document.getElementById('rewardSection').innerHTML=`
+      <div class="reward-title">🎉 捕获宝可梦！</div>
+      <div class="reward-card">
+        <img class="reward-pk-img" src="${artUrl(pk.id)}" alt="${pk.name}"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="reward-pk-emoji" style="display:none">${pk.emoji}</span>
+        <div class="reward-name">${pk.name.replace('\n',' ')}</div>
+        <div class="reward-rarity" style="color:${rarityColor(pk.rarity)}">${rarityLabel(pk.rarity)}</div>
+        <div class="reward-new-badge">NEW!</div>
+      </div>`;
+  }else{
+    const msg=accPct<80?`<div style="color:#ff9800;font-size:.85rem;font-weight:700">📊 准确率 ${accPct}%，未达80%，宝可梦逃走了！<br>加油，下次一定抓住！</div>`
+      :`<div style="color:#aef;font-size:.85rem;font-weight:700">💨 宝可梦逃走了，再接再厉！</div>`;
+    document.getElementById('rewardSection').innerHTML=pool_empty()?'<div style="color:#aef;font-size:.85rem;font-weight:700">图鉴已全部收集！🏆</div>':msg;
+  }
+
+  // Word review
+  const wmap={listen_choose:LESSON_DATA.level1_words,spell:LESSON_DATA.level1_words,match:LESSON_DATA.level2_words,build_sentence:null};
+  const wd=wmap[lv.mode];
+  let rev='<div style="margin-top:12px;width:100%">';
+  if(wd)Object.entries(wd).forEach(([en,zh])=>{rev+=`<div class="review-strip"><span class="review-en">${en}</span><span class="review-zh">${zh}</span><span class="review-speak" onclick="speakText('${en.replace(/'/g,"\\'")}')">🔊</span></div>`;});
+  else LESSON_DATA.level3_sentences.forEach(s=>{rev+=`<div class="review-strip"><span class="review-en" style="font-size:.78rem">${s}</span><span class="review-speak" onclick="speakText('${s.replace(/'/g,"\\'")}')">🔊</span></div>`;});
+  rev+='</div>';
+  document.getElementById('completeWordReview').innerHTML=rev;
+  document.getElementById('continueBtn').textContent=state.currentLevel>=LESSON_DATA.levels.length-1?'🏆 领取大奖 CLAIM PRIZE!':'继续冒险 CONTINUE ▶';
+  confetti({particleCount:80,spread:90,origin:{y:.6},colors:['#ffcb05','#e3350d','#3d7dca','#4caf50']});
+  showScreen('levelCompleteScreen');
+}
+function pool_empty(){return POKEMON_POOL.every(p=>state.gallery.find(g=>g.name===p.name));}
+function continueToNext(){state.currentLevel++;if(state.currentLevel>=LESSON_DATA.levels.length)showFinalScreen();else{showScreen('levelScreen');loadLevel(state.currentLevel);}}
+
+// FINAL
+function pickRareFinalPrize(){
+  // 优先传说(3)，其次稀有(2)，排除已收集的
+  const collectedIds = new Set(state.gallery.map(p=>p.id));
+  const legendary = POKEMON_POOL.filter(p=>p.rarity===3 && !collectedIds.has(p.id));
+  const rare      = POKEMON_POOL.filter(p=>p.rarity===2 && !collectedIds.has(p.id));
+  const pool = legendary.length ? legendary : rare.length ? rare :
+               POKEMON_POOL.filter(p=>p.rarity===3); // 全收集了就从传说里随机
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function showFinalScreen(){
+  const prize = pickRareFinalPrize();
+  const [zhName, enName] = prize.name.split('\n');
+  const displayName = `${zhName} (${enName})`;
+  const rarityLabel = prize.rarity===3 ? '👑 传说级' : '⭐ 稀有级';
+
+  document.getElementById('prizeName').textContent=displayName;
+  const pImg=document.getElementById('finalPrizeImg');
+  pImg.innerHTML=`
+    <div style="position:relative;display:inline-block">
+      <img class="pokemon-prize-img" src="${artUrl(prize.id)}" alt="${enName}"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div style="display:none;font-size:5rem">${prize.emoji}</div>
+      <div style="position:absolute;top:-8px;right:-8px;background:${prize.rarity===3?'#ff6f00':'#7b1fa2'};
+        color:#fff;font-size:.65rem;font-weight:900;padding:3px 8px;border-radius:20px;
+        box-shadow:0 2px 0 rgba(0,0,0,.4)">${rarityLabel}</div>
+    </div>`;
+
+  // 加入图鉴（避免重复）
+  if(!state.gallery.find(p=>p.id===prize.id)){
+    state.gallery.push(prize);
+    document.getElementById('galleryCount').textContent=state.gallery.length;
+    if(currentUser) saveUserGallery(currentUser, state.gallery);
+  }
+
+  const total=Object.keys(LESSON_DATA.level1_words).length*2+Object.keys(LESSON_DATA.level2_words).length+LESSON_DATA.level3_sentences.length;
+  document.getElementById('finalStats').innerHTML=`
+    <div class="stat-box"><div class="stat-num">${state.score}</div><div class="stat-label">总积分</div></div>
+    <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-label">掌握词句</div></div>
+    <div class="stat-box"><div class="stat-num">${state.gallery.length}</div><div class="stat-label">收集宝可梦</div></div>`;
+
+  // 更新听名字按钮
+  document.getElementById('prizeSpeak').onclick = ()=>speakText(enName);
+
+  showScreen('finalScreen');
+  const end=Date.now()+4000,cols=['#ffcb05','#e3350d','#3d7dca','#4caf50','#9c27b0'];
+  (function frame(){
+    confetti({particleCount:8,angle:60,spread:55,origin:{x:0},colors:cols});
+    confetti({particleCount:8,angle:120,spread:55,origin:{x:1},colors:cols});
+    if(Date.now()<end)requestAnimationFrame(frame);
+  })();
+}
+
+function replayGame(){
+  const savedGallery=currentUser?loadUserGallery(currentUser):state.gallery;
+  Object.assign(state,{score:0,hp:100,currentLevel:0,gallery:savedGallery,correct:0,total:0});
+  document.getElementById('scoreDisplay').textContent='0';
+  document.getElementById('galleryCount').textContent=state.gallery.length;
+  ['gameHeader','speedWidget','mascot'].forEach(id=>document.getElementById(id).style.display='none');
+  resetHp(); initTitle(); showScreen('titleScreen');
+}
+function handleNext(){const m=LESSON_DATA.levels[state.currentLevel].mode;if(m==='listen_choose')renderListenChoose();else if(m==='spell')renderSpellGame();else if(m==='build_sentence')renderSentenceBuilder();}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+window.onload=()=>{
+  buildBackground();
+  renderUserGrid();
+  renderLessonSelector();  // 恢复已保存的课程列表
+  connectSyncWS();
+  syncFromServer();
+};
+</script>
+</body>
+</html>

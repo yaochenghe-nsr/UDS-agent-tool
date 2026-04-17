@@ -1,0 +1,4 @@
+ecu,dtc_code,status,description,cause,repair,occurrence_counter,aging_counter,timestamp,raw_status_byte,raw_occurrence_counter,raw_aging_counter,raw_timestamp_bytes
+ECM,0101,Status_0x01,Engine Coolant Temperature Sensor Circuit,Sensor failure or wiring issue,"Replace sensor, check wiring",3,5,aaaaaa,1,3,5,aaaaaa
+ECM,1234,Status_0x02,Transmission Gear Position Sensor Fault,Sensor or solenoid issue,"Check sensor, solenoid, and wiring",1,2,bbbbbb,2,1,2,bbbbbb
+TCU,0500,Status_0x03,Vehicle Speed Sensor 'A' Malfunction,VSS failure or wiring problem,"Replace VSS, inspect wiring",7,1,cccccc,3,7,1,cccccc

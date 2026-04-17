@@ -1,0 +1,11 @@
+[server]
+address = "0.0.0.0"
+port = 8501
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+serverAddress = "glowing-fortnight-69j6g656gj5p3466j-8501.app.github.dev"
+serverPort = 443
+gatherUsageStats = false

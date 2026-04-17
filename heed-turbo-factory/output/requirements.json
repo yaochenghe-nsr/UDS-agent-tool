@@ -1,0 +1,20 @@
+[
+  {
+    "id": "REQ-001",
+    "title": "DTC解析功能",
+    "description": "系统应能够接收用户输入的DTC（Diagnostic Trouble Code）代码，并将其解析为可读的故障描述信息。",
+    "priority": "High"
+  },
+  {
+    "id": "REQ-002",
+    "title": "DTC原因分析",
+    "description": "对于解析出的DTC，系统应提供其可能发生的主要原因的说明。",
+    "priority": "High"
+  },
+  {
+    "id": "REQ-003",
+    "title": "用户界面",
+    "description": "系统应提供一个用户友好的界面，允许用户方便地输入DTC并查看解析结果及原因分析。",
+    "priority": "Medium"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "name": "UDS Agent Tool",
+  "forwardPorts": [8000, 8501],
+  "portsAttributes": {
+    "8000": {
+      "label": "FastAPI (UDS解析)",
+      "onAutoForward": "openBrowser"
+    },
+    "8501": {
+      "label": "Streamlit (AI助手)",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}
