@@ -85,6 +85,14 @@ async def upload_photo(file: UploadFile = File(...)):
   "level3_sentences": [
     "Complete English sentence."
   ],
+  "fill_blank_items": [
+    {
+      "sentence_with_blank": "Children need to ___ every day.",
+      "answer": "exercise",
+      "options": ["exercise", "jump", "stretch", "run"],
+      "full_sentence": "Children need to exercise every day."
+    }
+  ],
   "final_prize": "谜拟丘 (Mimikyu)",
   "final_prize_id": 778
 }
@@ -93,6 +101,7 @@ async def upload_photo(file: UploadFile = File(...)):
 - level1_words 提取 4~6 个基础词汇/短语
 - level2_words 提取 4~6 个进阶词汇/短语
 - level3_sentences 提取或改写 3~5 个完整英文句子
+- fill_blank_items 从 level3_sentences 中选 2~3 个句子，空出一个关键词（用___替换），提供4个选项（含正确答案）
 - 所有内容必须来自图片，或与图片主题紧密相关
 - 只返回纯 JSON，不要有任何解释文字"""
 

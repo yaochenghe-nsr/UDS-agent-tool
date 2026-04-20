@@ -673,12 +673,20 @@ const LESSON_DATA = {
     "Drink more water when you do exercise.",
     "Look after your body!"
   ],
+  fill_blank_items:[
+    {sentence_with_blank:"Children need to ___ every day.",answer:"exercise",options:["exercise","jump","stretch","run"],full_sentence:"Children need to exercise every day."},
+    {sentence_with_blank:"___ D is important to your bones.",answer:"Vitamin",options:["Vitamin","Sun cream","Children","Water"],full_sentence:"Vitamin D is important to your bones."},
+    {sentence_with_blank:"Drink more water when you do ___.",answer:"exercise",options:["exercise","vitamin","sun cream","stretch"],full_sentence:"Drink more water when you do exercise."}
+  ],
   final_prize:"谜拟丘 (Mimikyu)", final_prize_id:778,
   levels:[
-    {id:1, name:"Level 1",  subtitle:"基础词汇 Basic Words",        icon:"⚡", mode:"listen_choose", dataKey:"level1_words"},
-    {id:2, name:"Level 1+", subtitle:"拼写挑战 Spell the Words",    icon:"✏️", mode:"spell",          dataKey:"level1_words"},
-    {id:3, name:"Level 2",  subtitle:"进阶词汇 Advanced Words",     icon:"🔥", mode:"match",          dataKey:"level2_words"},
-    {id:4, name:"Level 3",  subtitle:"挑战句型 Challenge Sentences",icon:"💎", mode:"build_sentence", dataKey:"sentences"}
+    {id:1, name:"Level 1",  subtitle:"听音选词 Listen & Choose",   icon:"🔊", mode:"listen_choose", dataKey:"level1_words"},
+    {id:2, name:"Level 1+", subtitle:"看意选词 Chinese→English",   icon:"🔄", mode:"zh_to_en",      dataKey:"level1_words"},
+    {id:3, name:"Level 2",  subtitle:"拼写挑战 Spell It!",         icon:"✏️", mode:"spell",         dataKey:"level1_words"},
+    {id:4, name:"Level 3",  subtitle:"进阶连线 Match Words",        icon:"🔥", mode:"match",         dataKey:"level2_words"},
+    {id:5, name:"Level 3+", subtitle:"判断正误 True or False",      icon:"✅", mode:"true_false",    dataKey:"level2_words"},
+    {id:6, name:"Level 4",  subtitle:"填写空白 Fill in Blank",      icon:"📝", mode:"fill_blank",    dataKey:"fill_blank_items"},
+    {id:7, name:"Level 5",  subtitle:"排列句子 Build Sentence",     icon:"💎", mode:"build_sentence",dataKey:"sentences"}
   ],
   messages:{
     correct:["太棒了！Great job! ⭐","完美！Perfect! 🎯","太厉害了！Awesome! 🏆","对了！Correct! ✅"],
@@ -706,15 +714,64 @@ function deleteAiLesson(index){
   localStorage.setItem('pk_ai_lessons', JSON.stringify(list));
 }
 function setActiveLesson(lesson){
-  LESSON_DATA.unit     = lesson.unit     || ORIGINAL_LESSON.unit;
-  LESSON_DATA.title    = lesson.title    || ORIGINAL_LESSON.title;
-  LESSON_DATA.subtitle = lesson.subtitle || ORIGINAL_LESSON.subtitle;
+  LESSON_DATA.unit             = lesson.unit             || ORIGINAL_LESSON.unit;
+  LESSON_DATA.title            = lesson.title            || ORIGINAL_LESSON.title;
+  LESSON_DATA.subtitle         = lesson.subtitle         || ORIGINAL_LESSON.subtitle;
   LESSON_DATA.level1_words     = lesson.level1_words     || {};
   LESSON_DATA.level2_words     = lesson.level2_words     || {};
   LESSON_DATA.level3_sentences = lesson.level3_sentences || [];
+  LESSON_DATA.fill_blank_items = lesson.fill_blank_items || [];
+  LESSON_DATA.levels           = buildDiverseLevels(LESSON_DATA);
 }
 function resetToOriginalLesson(){
   setActiveLesson(ORIGINAL_LESSON);
+}
+
+function buildDiverseLevels(data){
+  const lvs=[];let id=1;
+  const w1=Object.keys(data.level1_words||{});
+  const w2=Object.keys(data.level2_words||{});
+  const s3=data.level3_sentences||[];
+  const fb=data.fill_blank_items||[];
+  if(w1.length>=3){
+    lvs.push({id:id++,name:'Level 1', subtitle:'听音选词 Listen & Choose',  icon:'🔊',mode:'listen_choose',dataKey:'level1_words'});
+    lvs.push({id:id++,name:'Level 1+',subtitle:'看意选词 Chinese→English',  icon:'🔄',mode:'zh_to_en',     dataKey:'level1_words'});
+  }
+  if(w1.length>=2)
+    lvs.push({id:id++,name:'Level 2', subtitle:'拼写挑战 Spell It!',        icon:'✏️',mode:'spell',        dataKey:'level1_words'});
+  if(w2.length>=3){
+    lvs.push({id:id++,name:'Level 3', subtitle:'进阶连线 Match Words',       icon:'🔥',mode:'match',        dataKey:'level2_words'});
+    lvs.push({id:id++,name:'Level 3+',subtitle:'判断正误 True or False',     icon:'✅',mode:'true_false',   dataKey:'level2_words'});
+  }
+  if(fb.length>=2)
+    lvs.push({id:id++,name:'Level 4', subtitle:'填写空白 Fill in Blank',     icon:'📝',mode:'fill_blank',   dataKey:'fill_blank_items'});
+  else if(s3.length>=2)
+    lvs.push({id:id++,name:'Level 4', subtitle:'填写空白 Fill in Blank',     icon:'📝',mode:'fill_blank',   dataKey:'auto_fill_blank'});
+  if(s3.length>=2)
+    lvs.push({id:id++,name:'Level 5', subtitle:'排列句子 Build Sentence',    icon:'💎',mode:'build_sentence',dataKey:'sentences'});
+  return lvs.length?lvs:ORIGINAL_LESSON.levels;
+}
+
+function autoFillBlank(){
+  const allWords={...LESSON_DATA.level1_words,...LESSON_DATA.level2_words};
+  const allKeys=Object.keys(allWords);
+  const stop=new Set(['the','a','an','to','is','are','in','on','at','of','and','or','it','do','you','your','more','when','need','every','day','after']);
+  return LESSON_DATA.level3_sentences.map(sent=>{
+    const lc=sent.toLowerCase();
+    const match=allKeys.find(k=>lc.includes(k.toLowerCase()));
+    let answer,sentWithBlank;
+    if(match){
+      answer=match;
+      sentWithBlank=sent.replace(new RegExp(match,'ig'),'___');
+    }else{
+      const words=sent.replace(/[.!?,;:]/g,'').split(' ').filter(w=>w.length>2&&!stop.has(w.toLowerCase()));
+      if(!words.length)return null;
+      answer=words[Math.floor(Math.random()*words.length)];
+      sentWithBlank=sent.replace(new RegExp('\\b'+answer+'\\b','i'),'___');
+    }
+    const distractors=shuffle(allKeys.filter(k=>k!==answer)).slice(0,3);
+    return {sentence_with_blank:sentWithBlank,answer,options:shuffle([answer,...distractors]),full_sentence:sent};
+  }).filter(Boolean);
 }
 
 // ================================================================
@@ -1143,7 +1200,7 @@ function showAiModal(state, lesson, errorMsg){
     ).join('');
     content.innerHTML = `
       <div class="ai-modal-title">✨ AI 识别完成！</div>
-      <div class="ai-modal-body">主题：<strong style="color:var(--yellow)">${lesson.unit||''}</strong><br>识别到 ${w1.length} 个基础词 + ${w2.length} 个进阶词 + ${(lesson.level3_sentences||[]).length} 个句子</div>
+      <div class="ai-modal-body">主题：<strong style="color:var(--yellow)">${lesson.unit||''}</strong><br>识别到 ${w1.length} 个基础词 + ${w2.length} 个进阶词 + ${(lesson.level3_sentences||[]).length} 个句子 + ${(lesson.fill_blank_items||[]).length} 道填空题</div>
       <div class="ai-word-preview">${wordRows}${sentences}</div>
       <div class="ai-modal-btns">
         <button class="btn btn-start" style="padding:11px 26px;font-size:.92rem" onclick="applyAiLesson()">🎮 用这些内容开始游戏！</button>
@@ -1347,6 +1404,17 @@ function handleTimerExpire(){
     document.querySelectorAll('.key-btn').forEach(k=>k.disabled=true);
     updateDot(state.currentQ++);
     setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderSpellGame(),2100);
+  } else if(mode==='zh_to_en'){
+    document.querySelectorAll('.choice-btn').forEach(b=>{b.disabled=true;if(b.dataset.val===state.levelData[state.currentQ].en)b.classList.add('correct');});
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderZhToEn(),1900);
+  } else if(mode==='true_false'){
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderTrueFalse(),1900);
+  } else if(mode==='fill_blank'){
+    document.querySelectorAll('.choice-btn').forEach(b=>{b.disabled=true;if(b.dataset.val===state.levelData[state.currentQ].answer)b.classList.add('correct');});
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderFillBlank(),1900);
   } else if(mode==='match'){
     completeLevel();
   } else {
@@ -1566,12 +1634,13 @@ function initTitle(){
   // 正确显示图鉴总数
   const pb=document.getElementById('pokedexTitleBtn');
   if(pb)pb.textContent=`📖 宝可梦图鉴 全 ${POKEMON_POOL.length} 只`;
-  const counts=[
-    Object.keys(LESSON_DATA.level1_words).length,
-    Object.keys(LESSON_DATA.level1_words).length,
-    Object.keys(LESSON_DATA.level2_words).length,
-    LESSON_DATA.level3_sentences.length
-  ];
+  const counts=LESSON_DATA.levels.map(lv=>{
+    if(lv.dataKey==='level1_words')     return Object.keys(LESSON_DATA.level1_words).length;
+    if(lv.dataKey==='level2_words')     return Object.keys(LESSON_DATA.level2_words).length;
+    if(lv.dataKey==='fill_blank_items') return LESSON_DATA.fill_blank_items.length;
+    if(lv.dataKey==='auto_fill_blank')  return LESSON_DATA.level3_sentences.length;
+    return LESSON_DATA.level3_sentences.length;
+  });
   document.getElementById('levelPreviews').innerHTML=LESSON_DATA.levels.map((lv,i)=>`
     <div class="level-badge">
       <div class="lv-icon">${lv.icon}</div>
@@ -1623,16 +1692,37 @@ function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classL
 function loadLevel(lvIdx){
   const lv=LESSON_DATA.levels[lvIdx];
   document.getElementById('levelTitle').textContent=lv.icon+' '+lv.name+': '+lv.subtitle;
-  if(lv.dataKey==='level1_words') state.levelData=Object.entries(LESSON_DATA.level1_words).map(([en,zh])=>({en,zh}));
-  else if(lv.dataKey==='level2_words') state.levelData=Object.entries(LESSON_DATA.level2_words).map(([en,zh])=>({en,zh}));
+  if(lv.dataKey==='level1_words')       state.levelData=Object.entries(LESSON_DATA.level1_words).map(([en,zh])=>({en,zh}));
+  else if(lv.dataKey==='level2_words'){
+    const words=Object.entries(LESSON_DATA.level2_words).map(([en,zh])=>({en,zh}));
+    if(lv.mode==='true_false'){
+      state.levelData=shuffle(words.map((w,i)=>{
+        const ok=Math.random()>.5;
+        return {en:w.en,displayZh:ok?w.zh:words[(i+1)%words.length].zh,isCorrect:ok,realZh:w.zh};
+      }));
+    }else state.levelData=words;
+  }
+  else if(lv.dataKey==='fill_blank_items') state.levelData=[...(LESSON_DATA.fill_blank_items||[])];
+  else if(lv.dataKey==='auto_fill_blank')  state.levelData=autoFillBlank();
   else state.levelData=LESSON_DATA.level3_sentences.map(s=>({sentence:s}));
   state.currentQ=0; renderProgressDots();
-  const subs={listen_choose:'🔊 听音选词 - 选出你听到的单词！',spell:'✏️ 拼写挑战 - 点击字母拼出单词！',match:'🔗 中英连线 - 点击配对！',build_sentence:'🧩 排列句子 - 点击单词拼出句子！'};
+  const subs={
+    listen_choose:'🔊 听音选词 - 选出你听到的单词！',
+    zh_to_en:     '🔄 看意选词 - 选出中文对应的英文！',
+    spell:        '✏️ 拼写挑战 - 点击字母拼出单词！',
+    match:        '🔗 中英连线 - 点击配对！',
+    true_false:   '✅ 判断正误 - 这个翻译对不对？',
+    fill_blank:   '📝 填写空白 - 选出空白处的单词！',
+    build_sentence:'🧩 排列句子 - 点击单词拼出句子！'
+  };
   document.getElementById('levelSubtitle').textContent=subs[lv.mode]||'';
   if(lv.mode==='listen_choose') renderListenChoose();
-  else if(lv.mode==='spell')    renderSpellGame();
-  else if(lv.mode==='match')    renderMatchGame();
-  else                          renderSentenceBuilder();
+  else if(lv.mode==='zh_to_en')     renderZhToEn();
+  else if(lv.mode==='spell')        renderSpellGame();
+  else if(lv.mode==='match')        renderMatchGame();
+  else if(lv.mode==='true_false')   renderTrueFalse();
+  else if(lv.mode==='fill_blank')   renderFillBlank();
+  else                              renderSentenceBuilder();
 }
 
 // DOTS
@@ -1865,6 +1955,113 @@ function checkSentenceComplete(){
   }
 }
 
+// ZH → EN
+function renderZhToEn(){
+  const item=state.levelData[state.currentQ];if(!item){completeLevel();return;}
+  document.getElementById('nextBtn').style.display='none';showFeedback('neutral','');state.answered=false;
+  startTimer(handleTimerExpire);
+  const all={...LESSON_DATA.level1_words,...LESSON_DATA.level2_words};
+  const allEn=Object.keys(all).filter(e=>e!==item.en);
+  const choices=shuffle([item.en,...shuffle(allEn).slice(0,3)]);
+  document.getElementById('gameArea').innerHTML=`
+    <div class="listen-zone">
+      <div class="listen-prompt">🔄 看中文，选出对应的英文单词：</div>
+      <div class="listen-word" style="color:#aef;font-size:1.9rem">${item.zh}</div>
+    </div>
+    <div class="choices-grid">
+      ${choices.map(c=>{const ce=c.replace(/'/g,"\\'"),ie=item.en.replace(/'/g,"\\'");
+        return `<button class="choice-btn" data-val="${c.replace(/"/g,'&quot;')}" onclick="answerZhToEn(this,'${ce}','${ie}')">${c}</button>`;}
+      ).join('')}
+    </div>`;
+}
+function answerZhToEn(btn,chosen,correct){
+  if(state.answered)return;state.answered=true;clearTimer();state.total++;
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  if(chosen===correct){
+    state.correct++;btn.classList.add('correct');addScore(12);speakText(correct);
+    showFeedback('correct',randMsg(LESSON_DATA.messages.correct));
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderZhToEn(),1200);
+  }else{
+    btn.classList.add('wrong');damageHp(10);speakText(correct);
+    showFeedback('wrong',randMsg(LESSON_DATA.messages.wrong));
+    document.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===correct)b.classList.add('correct');});
+    setTimeout(()=>{state.answered=false;renderZhToEn();},1800);
+  }
+}
+
+// TRUE / FALSE
+function renderTrueFalse(){
+  const item=state.levelData[state.currentQ];if(!item){completeLevel();return;}
+  document.getElementById('nextBtn').style.display='none';showFeedback('neutral','');state.answered=false;
+  startTimer(handleTimerExpire);
+  const enEsc=item.en.replace(/'/g,"\\'");
+  document.getElementById('gameArea').innerHTML=`
+    <div class="listen-zone" style="text-align:center">
+      <div class="listen-prompt">✅ 判断：这个翻译对不对？</div>
+      <div class="listen-word" style="font-size:1.7rem">${item.en}</div>
+      <div style="color:var(--yellow);font-size:1.25rem;font-weight:900;margin:12px 0;text-shadow:2px 2px 0 #000">= ${item.displayZh}</div>
+      <button class="btn-speak" onclick="speakText('${enEsc}')">🔊 听发音</button>
+    </div>
+    <div style="display:flex;gap:20px;justify-content:center;margin-top:16px">
+      <button class="choice-btn" style="background:linear-gradient(135deg,#1b5e20,var(--green));border-color:var(--green);font-size:1.1rem;max-width:140px" onclick="answerTF(true)">✅ 正确</button>
+      <button class="choice-btn" style="background:linear-gradient(135deg,#7f0000,var(--red));border-color:var(--red);font-size:1.1rem;max-width:140px" onclick="answerTF(false)">❌ 错误</button>
+    </div>`;
+  setTimeout(()=>speakText(item.en),400);
+}
+function answerTF(userSaysCorrect){
+  if(state.answered)return;state.answered=true;clearTimer();state.total++;
+  const item=state.levelData[state.currentQ];
+  const ok=(userSaysCorrect===item.isCorrect);
+  if(ok){
+    state.correct++;addScore(12);speakText(item.en);
+    showFeedback('correct',randMsg(LESSON_DATA.messages.correct));
+  }else{
+    damageHp(10);
+    const hint=item.isCorrect?`✅ 对的！${item.en} = ${item.realZh}`:`❌ 错的！正确是：${item.en} = ${item.realZh}`;
+    showFeedback('wrong',hint);
+  }
+  updateDot(state.currentQ++);
+  setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderTrueFalse(),1500);
+}
+
+// FILL IN THE BLANK
+function renderFillBlank(){
+  const item=state.levelData[state.currentQ];if(!item){completeLevel();return;}
+  document.getElementById('nextBtn').style.display='none';showFeedback('neutral','');state.answered=false;
+  startTimer(handleTimerExpire);
+  const opts=shuffle([...item.options]);
+  const fullEsc=(item.full_sentence||'').replace(/'/g,"\\'");
+  const blanked=item.sentence_with_blank.replace('___',
+    '<span style="display:inline-block;min-width:70px;border-bottom:3px solid var(--yellow);color:var(--yellow);padding:0 4px">___</span>');
+  document.getElementById('gameArea').innerHTML=`
+    <div class="listen-zone">
+      <div class="listen-prompt">📝 选出空白处应填的单词：</div>
+      <div style="font-size:1.05rem;color:#fff;font-weight:700;margin:14px 0;line-height:2.2;text-align:center">${blanked}</div>
+      ${fullEsc?`<button class="btn-speak" onclick="speakText('${fullEsc}')">🔊 听完整句子</button>`:''}
+    </div>
+    <div class="choices-grid">
+      ${opts.map(o=>{const oe=o.replace(/'/g,"\\'"),ae=item.answer.replace(/'/g,"\\'");
+        return `<button class="choice-btn" data-val="${o.replace(/"/g,'&quot;')}" onclick="answerFillBlank(this,'${oe}','${ae}','${fullEsc}')">${o}</button>`;}
+      ).join('')}
+    </div>`;
+}
+function answerFillBlank(btn,chosen,correct,fullSent){
+  if(state.answered)return;state.answered=true;clearTimer();state.total++;
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  if(chosen===correct){
+    state.correct++;btn.classList.add('correct');addScore(15);if(fullSent)speakText(fullSent);
+    showFeedback('correct',randMsg(LESSON_DATA.messages.correct));
+    updateDot(state.currentQ++);
+    setTimeout(()=>state.currentQ>=state.levelData.length?completeLevel():renderFillBlank(),1200);
+  }else{
+    btn.classList.add('wrong');damageHp(10);
+    showFeedback('wrong',randMsg(LESSON_DATA.messages.wrong));
+    document.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===correct)b.classList.add('correct');});
+    setTimeout(()=>{state.answered=false;renderFillBlank();},1800);
+  }
+}
+
 // LEVEL COMPLETE
 function completeLevel(){
   clearTimer();
@@ -1898,7 +2095,7 @@ function _showCompleteScreen(lv,accPct,pk){
   document.getElementById('completeTitle').textContent=LESSON_DATA.messages.level_clear[0];
   const starStr=accPct>=90?'⭐⭐⭐':accPct>=70?'⭐⭐':'⭐';
   document.getElementById('completeStars').textContent=starStr;
-  const pts={listen_choose:Object.keys(LESSON_DATA.level1_words).length*10,spell:Object.keys(LESSON_DATA.level1_words).length*25,match:Object.keys(LESSON_DATA.level2_words).length*15,build_sentence:LESSON_DATA.level3_sentences.length*20};
+  const pts={listen_choose:Object.keys(LESSON_DATA.level1_words).length*10,zh_to_en:Object.keys(LESSON_DATA.level1_words).length*12,spell:Object.keys(LESSON_DATA.level1_words).length*25,match:Object.keys(LESSON_DATA.level2_words).length*15,true_false:Object.keys(LESSON_DATA.level2_words).length*12,fill_blank:(LESSON_DATA.fill_blank_items.length||LESSON_DATA.level3_sentences.length)*15,build_sentence:LESSON_DATA.level3_sentences.length*20};
   document.getElementById('completeMsg').innerHTML=`${LESSON_DATA.messages.level_clear[1]}<br><strong style="color:var(--yellow)">${lv.name}: ${lv.subtitle}</strong><br><span style="color:#aef">积分+${pts[lv.mode]||0}</span><br><span style="color:${accPct>=80?'#4caf50':'#ff9800'}">答题准确率 ${accPct}%</span>`;
 
   const rarityLabel=r=>r===3?'★★★ 传说':r===2?'★★ 进阶':'★ 初阶';
@@ -1921,7 +2118,7 @@ function _showCompleteScreen(lv,accPct,pk){
   }
 
   // Word review
-  const wmap={listen_choose:LESSON_DATA.level1_words,spell:LESSON_DATA.level1_words,match:LESSON_DATA.level2_words,build_sentence:null};
+  const wmap={listen_choose:LESSON_DATA.level1_words,zh_to_en:LESSON_DATA.level1_words,spell:LESSON_DATA.level1_words,match:LESSON_DATA.level2_words,true_false:LESSON_DATA.level2_words,fill_blank:null,build_sentence:null};
   const wd=wmap[lv.mode];
   let rev='<div style="margin-top:12px;width:100%">';
   if(wd)Object.entries(wd).forEach(([en,zh])=>{rev+=`<div class="review-strip"><span class="review-en">${en}</span><span class="review-zh">${zh}</span><span class="review-speak" onclick="speakText('${en.replace(/'/g,"\\'")}')">🔊</span></div>`;});
@@ -1997,13 +2194,16 @@ function replayGame(){
   ['gameHeader','speedWidget','mascot'].forEach(id=>document.getElementById(id).style.display='none');
   resetHp(); initTitle(); showScreen('titleScreen');
 }
-function handleNext(){const m=LESSON_DATA.levels[state.currentLevel].mode;if(m==='listen_choose')renderListenChoose();else if(m==='spell')renderSpellGame();else if(m==='build_sentence')renderSentenceBuilder();}
+function handleNext(){const m=LESSON_DATA.levels[state.currentLevel].mode;if(m==='listen_choose')renderListenChoose();else if(m==='zh_to_en')renderZhToEn();else if(m==='spell')renderSpellGame();else if(m==='true_false')renderTrueFalse();else if(m==='fill_blank')renderFillBlank();else if(m==='build_sentence')renderSentenceBuilder();}
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 window.onload=()=>{
+  // 初始化多样化关卡（需等 buildDiverseLevels 函数加载后执行）
+  LESSON_DATA.levels = buildDiverseLevels(LESSON_DATA);
+  ORIGINAL_LESSON.levels = JSON.parse(JSON.stringify(LESSON_DATA.levels));
   buildBackground();
   renderUserGrid();
-  renderLessonSelector();  // 恢复已保存的课程列表
+  renderLessonSelector();
   connectSyncWS();
   syncFromServer();
 };
