@@ -1211,6 +1211,11 @@ function showAiModal(state, lesson, errorMsg){
       <div class="ai-modal-title">✨ AI 识别完成！</div>
       <div class="ai-modal-body">主题：<strong style="color:var(--yellow)">${lesson.unit||''}</strong><br>识别到 ${w1.length} 个基础词 + ${w2.length} 个进阶词 + ${(lesson.level3_sentences||[]).length} 个句子 + ${(lesson.fill_blank_items||[]).length} 道填空题</div>
       <div class="ai-word-preview">${wordRows}${sentences}</div>
+      <div style="margin:12px 0 4px;text-align:left">
+        <div style="font-size:.78rem;color:#aef;font-weight:700;margin-bottom:5px">📌 课程名称（可修改）</div>
+        <input id="aiLessonNameInput" class="user-name-input" style="width:100%;border-radius:12px;font-size:.92rem;padding:9px 14px"
+          placeholder="输入课程名称…" maxlength="20" value="${(lesson.title||lesson.unit||'').replace(/"/g,'&quot;')}">
+      </div>
       <div class="ai-modal-btns">
         <button class="btn btn-start" style="padding:11px 26px;font-size:.92rem" onclick="applyAiLesson()">🎮 用这些内容开始游戏！</button>
         <button class="btn btn-replay" style="padding:11px 26px;font-size:.92rem;background:linear-gradient(135deg,#4a148c,#6a1b9a)" onclick="triggerPhotoUpload();closeAiModal()">📷 重新上传</button>
@@ -1222,6 +1227,8 @@ function applyAiLesson(){
   const lesson = _pendingLesson;
   if(!lesson) return;
   _pendingLesson = null;
+  const customName = (document.getElementById('aiLessonNameInput')?.value||'').trim();
+  if(customName){ lesson.title = customName; lesson.unit = customName; }
   saveAiLesson(lesson);
   setActiveLesson(lesson);
   closeAiModal();
