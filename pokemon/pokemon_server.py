@@ -118,6 +118,14 @@ async def upload_photo(file: UploadFile = File(...)):
     return lesson
 
 # ── REST API ──────────────────────────────────────────────────────────────────
+@app.delete("/api/users/{username}")
+async def api_delete_user(username: str):
+    f = DATA_DIR / f"{username}.json"
+    if f.exists():
+        f.unlink()
+    await mgr.broadcast({"type": "user_deleted", "username": username})
+    return {"ok": True}
+
 @app.get("/api/users")
 def api_users():
     result = {}

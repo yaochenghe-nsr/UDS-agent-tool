@@ -509,6 +509,40 @@ body{
 }
 .user-name-input:focus{border-color:var(--yellow);}
 .user-name-input::placeholder{color:rgba(255,255,255,.4);}
+.user-delete-btn{
+  position:absolute;top:8px;right:8px;z-index:10;
+  background:rgba(200,0,0,.35);border:1px solid rgba(255,80,80,.5);
+  color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;
+  font-size:.85rem;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s,background .15s;
+}
+.user-card:hover .user-delete-btn{opacity:1;}
+.user-delete-btn:hover{background:rgba(200,0,0,.75)!important;}
+/* ---- Delete Modal ---- */
+.delete-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.delete-modal-overlay.open{opacity:1;pointer-events:all;}
+.delete-modal{
+  background:linear-gradient(145deg,#0d1b4b,#1a237e);
+  border:3px solid var(--red);border-radius:24px;
+  padding:28px 32px;text-align:center;max-width:320px;width:90%;
+  box-shadow:0 12px 40px rgba(0,0,0,.7);
+}
+.delete-modal h3{font-size:1.2rem;color:var(--yellow);margin-bottom:6px;}
+.delete-modal p{font-size:.85rem;color:#aef;margin-bottom:16px;}
+.delete-modal strong{color:#fff;}
+.delete-pass-input{
+  width:100%;padding:11px 16px;font-size:1rem;border-radius:50px;
+  border:3px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);
+  color:#fff;text-align:center;font-family:'Nunito',sans-serif;
+  font-weight:700;outline:none;margin-bottom:8px;
+}
+.delete-pass-input:focus{border-color:var(--yellow);}
+.delete-err{font-size:.8rem;color:#ff6b6b;font-weight:700;min-height:1.2em;margin-bottom:10px;}
+.delete-modal-btns{display:flex;gap:10px;justify-content:center;}
 
 /* ---- Lesson Selector ---- */
 .lesson-selector-btn{
@@ -768,6 +802,21 @@ const artUrl    = id => `https://raw.githubusercontent.com/PokeAPI/sprites/maste
   </div>
 </div>
 
+<!-- DELETE USER MODAL -->
+<div class="delete-modal-overlay" id="deleteModalOverlay" onclick="closeDeleteModal()">
+  <div class="delete-modal" onclick="event.stopPropagation()">
+    <h3>🗑️ 删除训练家</h3>
+    <p>确定要删除 <strong id="deleteUserName"></strong> 吗？<br>请输入删除口令：</p>
+    <input class="delete-pass-input" id="deletePassInput" type="password" placeholder="输入口令" maxlength="10"
+      onkeydown="if(event.key==='Enter')confirmDeleteUser()">
+    <div class="delete-err" id="deleteErrMsg"></div>
+    <div class="delete-modal-btns">
+      <button class="btn btn-start" style="padding:10px 22px;font-size:.88rem" onclick="confirmDeleteUser()">✅ 确认删除</button>
+      <button class="btn btn-replay" style="padding:10px 22px;font-size:.88rem;background:linear-gradient(135deg,#37474f,#546e7a)" onclick="closeDeleteModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- AI PHOTO MODAL -->
 <div class="ai-modal-overlay" id="aiModalOverlay">
   <div class="ai-modal">
@@ -907,8 +956,8 @@ const artUrl    = id => `https://raw.githubusercontent.com/PokeAPI/sprites/maste
 <script>
 // ── USER MANAGEMENT ──────────────────────────────────────────────────────────
 const KNOWN_USERS=[
-  {name:'姚尧',emoji:'🌟',color:'#ffcb05'},
-  {name:'姚烁',emoji:'⚡',color:'#3d7dca'}
+  {name:'尧尧',emoji:'🌟',color:'#ffcb05'},
+  {name:'米米',emoji:'⚡',color:'#3d7dca'}
 ];
 let currentUser='';
 
@@ -985,19 +1034,24 @@ function connectSyncWS(){
     try{
       const msg=JSON.parse(e.data);
       if(msg.type==='gallery_update'){
-        // 更新本地缓存
         localStorage.setItem('pk_gallery_'+msg.username,JSON.stringify(msg.gallery));
         const u=getAllUsers();
         if(!u.includes(msg.username)){u.push(msg.username);localStorage.setItem('pk_all_users',JSON.stringify(u));}
-        // 刷新当前可见的界面
         const activeId=document.querySelector('.screen.active')?.id;
         if(activeId==='userScreen')renderUserGrid();
         else if(activeId==='titleScreen')document.getElementById('leaderboardZone').innerHTML=renderLeaderboard();
-        // 如果是当前用户，更新图鉴
         if(msg.username===currentUser&&activeId!=='levelScreen'){
           state.gallery=msg.gallery;
           document.getElementById('galleryCount').textContent=state.gallery.length;
         }
+      }
+      if(msg.type==='user_deleted'){
+        localStorage.removeItem('pk_gallery_'+msg.username);
+        const users=getAllUsers().filter(u=>u!==msg.username);
+        localStorage.setItem('pk_all_users',JSON.stringify(users));
+        const activeId=document.querySelector('.screen.active')?.id;
+        if(activeId==='userScreen')renderUserGrid();
+        else if(activeId==='titleScreen')document.getElementById('leaderboardZone').innerHTML=renderLeaderboard();
       }
     }catch(err){}
   };
@@ -1183,13 +1237,48 @@ function renderUserGrid(){
   document.getElementById('userGrid').innerHTML=display.map(u=>{
     const g=loadUserGallery(u.name);
     const preview=g.slice(0,3).map(p=>p.emoji).join('');
-    return `<div class="user-card" style="--user-color:${u.color}" onclick="selectUser('${u.name}')">
+    const esc=u.name.replace(/'/g,"\\'");
+    return `<div class="user-card" style="--user-color:${u.color}" onclick="selectUser('${esc}')">
+      <button class="user-delete-btn" onclick="event.stopPropagation();promptDeleteUser('${esc}')" title="删除用户">🗑️</button>
       <span class="user-avatar">${u.emoji}</span>
       <div class="user-name">${u.name}</div>
       <div class="user-pk-count">${g.length?'已收集 '+g.length+' 只宝可梦 🏆':'还没有宝可梦，快去捕捉！'}</div>
       ${preview?'<div class="user-pk-preview">'+preview+'</div>':''}
     </div>`;
   }).join('');
+}
+
+function promptDeleteUser(name){
+  document.getElementById('deleteUserName').textContent=name;
+  document.getElementById('deletePassInput').value='';
+  document.getElementById('deleteErrMsg').textContent='';
+  document.getElementById('deleteModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('deletePassInput').focus(),100);
+  window._pendingDeleteUser=name;
+}
+
+function confirmDeleteUser(){
+  const pass=document.getElementById('deletePassInput').value.trim();
+  if(pass!=='715302'){
+    document.getElementById('deleteErrMsg').textContent='❌ 口令错误，无法删除！';
+    document.getElementById('deletePassInput').value='';
+    document.getElementById('deletePassInput').focus();
+    return;
+  }
+  const name=window._pendingDeleteUser;
+  // 从 localStorage 删除
+  localStorage.removeItem('pk_gallery_'+name);
+  const users=getAllUsers().filter(u=>u!==name);
+  localStorage.setItem('pk_all_users',JSON.stringify(users));
+  // 从服务器删除
+  fetch('/api/users/'+encodeURIComponent(name),{method:'DELETE'}).catch(()=>{});
+  closeDeleteModal();
+  renderUserGrid();
+}
+
+function closeDeleteModal(){
+  document.getElementById('deleteModalOverlay').classList.remove('open');
+  window._pendingDeleteUser=null;
 }
 
 function renderLeaderboard(){
