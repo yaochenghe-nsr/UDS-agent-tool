@@ -818,8 +818,17 @@ const POKEMON_POOL = (()=>{
 })();
 
 // sprite helpers
-const spriteUrl = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-const artUrl    = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+// 优先本地（需先运行 download_sprites.py），否则回退 PokeAPI CDN
+const spriteUrl = id => `/static/sprites/${id}.png`;
+const artUrl    = id => `/static/artwork/${id}.png`;
+const spriteUrlCDN = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+const artUrlCDN    = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+function withCdnFallback(imgEl, id, type='art'){
+  imgEl.onerror = () => {
+    imgEl.onerror = null;
+    imgEl.src = type==='art' ? artUrlCDN(id) : spriteUrlCDN(id);
+  };
+}
 </script>
 
 <!-- BG LAYERS -->
@@ -1458,7 +1467,7 @@ function showCatchAnimation(pk,accuracy,onDone){
   const imgEl=document.createElement('img');
   imgEl.className='catch-pk-img';
   imgEl.src=artUrl(pk.id);
-  imgEl.onerror=()=>{imgEl.style.display='none';const em=document.createElement('span');em.className='catch-pk-emoji';em.textContent=pk.emoji;pkDisp.appendChild(em);};
+  imgEl.onerror=()=>{imgEl.onerror=null;imgEl.src=artUrlCDN(pk.id);imgEl.onerror=()=>{imgEl.style.display='none';const em=document.createElement('span');em.className='catch-pk-emoji';em.textContent=pk.emoji;pkDisp.appendChild(em);};};
   pkDisp.innerHTML='';pkDisp.appendChild(imgEl);
   res.textContent='';
 
@@ -1551,7 +1560,7 @@ function openPokedex(){
     if(got){
       return `<div class="gallery-slot collected">
         <img class="gs-img" src="${artUrl(p.id)}" alt="${p.name}"
-          onerror="this.onerror=null;this.src='${spriteUrl(p.id)}';this.onerror=()=>{this.style.display='none';this.nextElementSibling.style.display='block'}">
+          onerror="this.onerror=null;this.src='${artUrlCDN(p.id)}';this.onerror=()=>{this.src='${spriteUrlCDN(p.id)}';this.onerror=()=>{this.style.display='none';this.nextElementSibling.style.display='block'}}">
         <span class="gs-emoji-fallback" style="display:none">${p.emoji}</span>
         <div class="gs-name">${p.name.replace('\n','<br>')}</div>
         <div class="gs-stars" style="color:${starClr(p.rarity)}">${starStr(p.rarity)}</div>
@@ -1579,7 +1588,7 @@ function openGallery(){
   let html=state.gallery.map(p=>`
     <div class="gallery-slot collected">
       <img class="gs-img" src="${galleryImgSrc(p)}" alt="${p.name}"
-           onerror="this.onerror=null;this.src='${spriteUrl(p.id)}';this.onerror=()=>{this.style.display='none';this.nextElementSibling.style.display='block';}">
+           onerror="this.onerror=null;this.src='${artUrlCDN(p.id)}';this.onerror=()=>{this.src='${spriteUrlCDN(p.id)}';this.onerror=()=>{this.style.display='none';this.nextElementSibling.style.display='block';}}">
       <span class="gs-emoji-fallback" style="display:none">${p.emoji}</span>
       <div class="gs-name">${p.name.replace('\n','<br>')}</div>
       <div class="gs-stars" style="color:${starClr(p.rarity)}">${starStr(p.rarity)}</div>

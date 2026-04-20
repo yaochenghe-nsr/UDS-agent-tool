@@ -2,12 +2,18 @@
 """Pokemon game server — FastAPI with WebSocket real-time sync on port 8888."""
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import json, base64, os
 from pathlib import Path
 from google import genai
 from google.genai import types
 
 app = FastAPI()
+
+# 伺服本地宝可梦图片（先运行 download_sprites.py 下载）
+_static_dir = Path(__file__).parent / "static"
+if _static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
 # ── Data storage ──────────────────────────────────────────────────────────────
 DATA_DIR = Path("pokemon_user_data")
